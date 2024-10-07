@@ -1,9 +1,0 @@
-[
-  "tests/test_functions2D.py::test_turbinegen_full",
-  "tests/test_functions3D.py::test_anisotropy",
-  "tests/test_functions3D.py::test_turbinegen_full",
-  "tests/test_functions3D.py::test_turbinegen_isolated",
-  "tests/test_terrain.py::test_terrain2D",
-  "tests/test_terrain.py::test_terrain3D",
-  "tests/test_terrain.py::test_terrain3D_default"
-]
