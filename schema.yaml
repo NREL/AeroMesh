@@ -1,0 +1,26 @@
+domain:
+  terrain_path: ""
+  x_range: [0, 0]
+  y_range: [0, 0]
+  height: 0
+  aspect_ratio: 0
+  aspect_distance: 0
+  dimension: 0
+
+refine:
+  global_scale: 0
+  turbine:
+    num_turbines: 1
+    1:
+      x: 0
+      y: 0
+      wake: 0
+    length_scale: 0
+    threshold_upstream_distance: 0
+    threshold_downstream_distance: 0
+    threshold_rotor_distance: 0
+    shudder: 0
+  background_length_scale: 0
+  farm:
+    length_scale: 0
+    threshold_distance: 0
