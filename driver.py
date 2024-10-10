@@ -7,10 +7,15 @@ from src.functions2D import *
 from src.functions3D import *
 
 
-def main2(params):
+def generate2DMesh(params):
     gmsh.initialize()
 
     gmsh.model.add("User Model")
+
+    scale = params['refine']['global_scale']
+    params['refine']['turbine']['length_scale'] *= scale
+    params['refine']['farm']['length_scale'] *= scale
+    params['refine']['background_length_scale'] *= scale
 
     farm = []
 
@@ -29,10 +34,15 @@ def main2(params):
 
     gmsh.model.mesh.generate(2)
 
-def main3(params):
+def generate3DMesh(params):
     gmsh.initialize()
 
     gmsh.model.add("User Model")
+
+    scale = params['refine']['global_scale']
+    params['refine']['turbine']['length_scale'] *= scale
+    params['refine']['farm']['length_scale'] *= scale
+    params['refine']['background_length_scale'] *= scale
 
     gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", 0)
     gmsh.option.setNumber("Mesh.MeshSizeFromPoints", 0)
@@ -73,15 +83,10 @@ def main():
     setYAMLDefaults(params)
     verifyYAML(params)
 
-    scale = params['refine']['global_scale']
-    params['refine']['turbine']['length_scale'] *= scale
-    params['refine']['farm']['length_scale'] *= scale
-    params['refine']['background_length_scale'] *= scale
-
     if params['domain']['dimension'] == 3:
-        main3(params)
+        generate3DMesh(params)
     else:
-        main2(params)
+        generate2DMesh(params)
     
     filename = 'out.vtk'
     gmsh.write(filename)
