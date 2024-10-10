@@ -8,6 +8,15 @@ from src.functions3D import *
 
 
 def generate2DMesh(params):
+
+    """
+    Executes a 2D meshing operation on params. Outputs results in the file out.vtk.
+
+    :param params: A dictionary of the required parameters.
+    :type kind: dict()
+
+    """
+        
     gmsh.initialize()
 
     gmsh.model.add("User Model")
@@ -35,6 +44,15 @@ def generate2DMesh(params):
     gmsh.model.mesh.generate(2)
 
 def generate3DMesh(params):
+
+    """
+    Executes a 3D meshing operation on params. Outputs results in the file out.vtk.
+
+    :param params: A dictionary of the required parameters.
+    :type kind: dict()
+
+    """
+
     gmsh.initialize()
 
     gmsh.model.add("User Model")
@@ -91,9 +109,6 @@ def main():
     filename = 'out.vtk'
     gmsh.write(filename)
 
-    if '-nopopup' not in sys.argv:
-        gmsh.fltk.run()
-
     gmsh.finalize()
 
 def setYAMLDefaults(params):
@@ -106,6 +121,7 @@ def setYAMLDefaults(params):
 
     domain.setdefault('aspect_distance', 0)
     refine.setdefault('turbine', {}).setdefault('num_turbines', 0)
+    refine.setdefault('turbine', {}).setdefault('shudder', params['refine']['turbine']['threshold_rotor_distance'])
 
     refine.setdefault('farm', {}).setdefault('length_scale', params['refine']['background_length_scale'])
     refine.setdefault('farm', {}).setdefault('threshold_distance', 0)

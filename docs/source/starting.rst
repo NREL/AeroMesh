@@ -21,9 +21,9 @@ Usage
 ------------
 
 To start, create a YAML file that details the specifications of your wind farm. A sample structure for the YAML
-file can be viewed `here <https://github.nrel.gov/agushin/AeroMesh/blob/main/schema.yaml>`_. Once this file is created,
+file can be viewed :ref:`here <yaml_params>`. Once this file is created,
 the program can be executed via:
 
 .. code-block:: console
 
-    $ python driver.py file.yaml
+    $ python aeromesh.py file.yaml

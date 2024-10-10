@@ -6,7 +6,7 @@ Parameters
 YAML and Directory Structure
 -----------------------------
 
-The YAML structure below details all possible parameters and their expected data types and input formats.
+The YAML structure below details all possible parameters, their expected data types, and input formats.
 
 .. code-block:: yaml
     :linenos:
@@ -57,6 +57,74 @@ details on the parameters and their functions.
 
 2D and 3D Parameters
 ~~~~~~~~~~~~~~~~~~~~~~
+The following list details the parameters used across all meshing procedures. If the parameters are not optional, they can never be safely omitted.
+
+.. list-table::
+    :header-rows: 1
+
+    * - Parameter
+      - Description
+      - Optional
+    * - x_range
+      - The minimum and maximum x-coordinates that define the meshing domain.
+      - No.
+    * - y_range
+      - The minimum and maximum y-coordinates that define the meshing domain.
+      - No.
+    * - dimension
+      - The dimension of the mesh. 2 for 2D meshes, 3 for 3D meshes.
+      - No.
+    * - global_scale
+      - A scaling factor applied uniformly to all length scales. 1 by default, to create no effect.
+      - Yes.
+    * - threshold_upstream_distance
+      - The extent to which the turbine meshes should extend in the negative wake direction.
+      - No.
+    * - threshold_downstream_distance
+      - The extent to which the turbine meshes should extend in the positive wake direction.
+      - No.
+    * - threshold_rotor_distance
+      - The radius formed by a rotation of the turbine's rotor.
+      - No.
+    * - background_length_scale
+      - The length scale of the meshing across the entire domain.
+      - No.
+    * - length_scale (turbine)
+      - The length scale of the meshing near the turbines.
+      - No.
+    * - length_scale (farm)
+      - The length scale of the meshing near the turbines. By default, this parameter is set to the background length scale.
+      - Yes.
+    * - threshold_distance (farm)
+      - By default, a farm region is defined by a minimum bounding rectangle surrounding all the turbines. This parameter extends the bounding region by its value.
+      - Yes.
+    * - num_turbines
+      - The expected number of turbines.
+      - No.
+
+Creating Turbines
+~~~~~~~~~~~~~~~~~~~~~~
+
+As discussed above, the number of turbines must be specified using the appropriate field.
+For each turbine, create a numerical field and populate it with the three relevant turbine parameters.
+Examples are shown :ref:`here <yaml_params>`, under the turbine header. The table below describes the three
+turbine parameters.
+
+.. list-table::
+    :header-rows: 1
+
+    * - Parameter
+      - Description
+      - Optional
+    * - x
+      - The x-coordinate of the center of the turbine.
+      - No.
+    * - y
+      - The y-coordinate of the center of the turbine.
+      - No.
+    * - wake
+      - The direction of the turbine wake. 0 sets the wake in the x-direction. 1 sets the wake in the y-direction.
+      - No.
 
 3D Parameters Only
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -86,3 +154,15 @@ these parameters can be safely omitted.
 2D Parameters Only
 ~~~~~~~~~~~~~~~~~~~~~~
 
+The following list details the parameters used only in 2D simulations. If the simulation is in 3D,
+these parameters can be safely omitted.
+
+.. list-table::
+    :header-rows: 1
+
+    * - Parameter
+      - Description
+      - Optional
+    * - shudder
+      - Allows for adjustment of the concavity of the turbines. Set less than the rotor distance for a convex refinement. Set greater than the rotor distance for a concave refinement. By default, shudder is set to rotor distance, creating a perfectly rectangular mesh.
+      - Yes.

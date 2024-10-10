@@ -14,6 +14,7 @@ Contents
 
    starting
    parameters
+   user
 
 .. note::
 
