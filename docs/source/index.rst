@@ -16,7 +16,3 @@ Contents
    parameters
    user
    developer
-
-.. note::
-
-   This project is under active development.
