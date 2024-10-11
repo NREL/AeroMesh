@@ -15,6 +15,7 @@ Contents
    starting
    parameters
    user
+   developer
 
 .. note::
 

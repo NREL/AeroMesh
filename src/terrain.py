@@ -5,6 +5,22 @@ import numpy as np
 from scipy.interpolate import LinearNDInterpolator
 
 def buildTerrainFromFile(params, domain):
+
+    """
+    A 3D terrain generator used when non-default terrain is specified. This function will
+    build an interpolation function using the inputted terrain file and builds a cube where the
+    bottom face is determined by the interpolating function. It also sets a 'Box' field with tag 999 
+    around the domain that sets the domain-wide meshing constraints.
+
+    :param params: The parameter dictionary.
+    :type params: dict()
+    :param domain: The structure representing the domain.
+    :type domain: Domain
+    :return: The GMESH surface loop representing the domain.
+    :rtype: int
+
+    """
+
     filename = params['domain']['terrain_path']
     x_range = params['domain']['x_range']
     y_range = params['domain']['y_range']
@@ -127,6 +143,21 @@ def buildTerrainFromFile(params, domain):
     return sl1
 
 def buildTerrainDefault(params, domain):
+
+    """
+    The default 3D terrain generator. Used when no terrain file is specified.
+    It will build a cube with the specified dimensions and activate a 'Box' field with tag 999
+    setting the domain meshing constraint.
+
+    :param params: The parameter dictionary.
+    :type params: dict()
+    :param domain: The structure representing the domain.
+    :type domain: Domain
+    :return: The GMESH surface loop representing the domain.
+    :rtype: int
+
+    """
+
     x_range = params['domain']['x_range']
     y_range = params['domain']['y_range']
     height = params['domain']['height']
@@ -196,6 +227,21 @@ def buildTerrainDefault(params, domain):
     return gmsh.model.geo.addSurfaceLoop([base, f1, f2, f3, f4, top])
 
 def buildTerrain2D(params, domain):
+
+    """
+    The default 2D terrain generator. It will build a rectangular region
+    as specified by the parameters. It will also initialize a 'Box' field
+    with tag 999 to enforce the domain-wide meshing constraints.
+
+    :param params: The parameter dictionary.
+    :type params: dict()
+    :param domain: The structure representing the domain.
+    :type domain: Domain
+    :return: The GMESH curve loop representing the domain.
+    :rtype: int
+
+    """
+
     x_range = params['domain']['x_range']
     y_range = params['domain']['y_range']
     lc = params['refine']['background_length_scale']

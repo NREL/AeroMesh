@@ -4,8 +4,8 @@ Getting Started
 Installation
 ------------
 
-To use AeroMesh, clone `the GitHub repository <https://github.nrel.gov/agushin/AeroMesh>`_ onto your local machine.
-Change directory into AeroMesh and run the command:
+To use **AeroMesh**, clone `the GitHub repository <https://github.nrel.gov/agushin/AeroMesh>`_ onto your local machine.
+Change directory into **AeroMesh** and run the command:
 
 .. code-block:: console
 

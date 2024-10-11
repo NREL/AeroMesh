@@ -2,6 +2,23 @@ import gmsh
 import math
 
 def generateTurbines(params, domain, wf):
+
+    """
+    Builds every turbine in the range [1, num_turbines].
+    It also adjusts the minimum bounding regions of the wind farm to surround
+    the turbines.
+
+    :param params: The parameter dictionary.
+    :type params: dict()
+    :param domain: The structure representing the domain.
+    :type domain: Domain
+    :param wf: The structure representing the wind farm.
+    :type wf: WindFarm
+    :return: A list of all the GMESH fields that represent the turbines.
+    :rtype: list[int]
+
+    """
+
     fields = []
     nFarms = params['refine']['turbine']['num_turbines']
     lc = params['refine']['turbine']['length_scale'] 
@@ -32,7 +49,6 @@ def generateTurbines(params, domain, wf):
         if wake == 0:
             wf.updateXMax(x + eDownstream)
             wf.updateXMin(x - eUpstream)
-            print(eUpstream)
             wf.updateYMax(y)
             wf.updateYMin(y)
         else:
@@ -44,6 +60,40 @@ def generateTurbines(params, domain, wf):
     return fields
         
 def placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, wake, aspect, domain):
+
+    """
+    Builds a single turbine in 3D space at the target (x, y, z) triple.
+    Updates the minimum bounding region representing the farm if necessary.
+    Adjusts the meshing region in the z-direction to account for anisotropic effects if needed.
+
+    :param x: The x coordinate of the turbine center.
+    :type x: double
+    :param y: The y coordinate of the turbine center.
+    :type y: double
+    :param z: The z coordinate of the turbine center.
+    :type z: double
+    :param upstream: The extension of the wake in the negative direction.
+    :type upstream: double
+    :param downstream: The extension of the wake in the positive direction.
+    :type downstream: double
+    :param rotor: The radius of the rotor.
+    :type rotor: double
+    :param lc: The turbine level meshing restriction.
+    :type lc: double
+    :param lcb: The domain level meshing restriction.
+    :type lcb: double
+    :param lcf: The farm level meshing restriction.
+    :type lcf: double
+    :param wake: The direction of the wake.
+    :type wake: int
+    :param aspect: The aspect ratio.
+    :type aspect: int
+    :param domain: The structure representing the domain.
+    :type domain: Domain
+    :return: A list of GMESH fields that define the rotor's meshing region plus any anisotropic meshing in the z-direction.
+    :rtype: list[int]
+
+    """
 
     ###
     # Initialize proper data structures.
@@ -230,6 +280,26 @@ def placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, wake, aspec
     return fields
 
 def checkBounds(domain, upstream, downstream, origin, wake):
+
+    """
+    Checks if the extension of a turbine's wake interests the borders of the domain.
+    If this case occurs, the wake is stopped at the domain boundary.
+
+    :param domain: The structure representing the domain.
+    :type domain: Domain
+    :param upstream: The extension of the wake in the negative direction.
+    :type upstream: double
+    :param downstream: The extension of the wake in the positive direction.
+    :type upstream: double
+    :param origin: The turbine center.
+    :type origin: (double, double)
+    :param wake: The direction of the wake.
+    :type wake: int
+    :return: An adjusted upstream and downstream distance that prevent domain violations.
+    :rtype: (double, double)
+
+    """
+
     eUpstream = upstream
     eDownstream = downstream
     if wake == 0:
@@ -245,6 +315,14 @@ def checkBounds(domain, upstream, downstream, origin, wake):
     return eUpstream, eDownstream
 
 def anisotropyScale(params):
+
+    """
+    Compresses the mesh nodes to generate the anisotropic effects.
+
+    :param params: The parameter dictionary.
+    :type params: dict()
+    """
+
     aspect = params['domain']['aspect_ratio']
     dist = params['domain']['aspect_distance']
 
@@ -264,20 +342,46 @@ def anisotropyScale(params):
             coord[2] -= dist
         gmsh.model.mesh.setNode(tag, coord, [])
 
-# B is radius in major axis (z) direction, A is minor axis radius.
 def calcEllipse(a, b, z):
+
+    """
+    Calculates the distance to the border of the radius of the
+    ellipse created by any anisotropic effects.
+
+    :param a: The ellipse minor axis.
+    :type a: double
+    :param b: The ellipse major axis.
+    :type b: double
+    :param z: The elevation of the ellipse formed by the turbine, scaled so the center is at 0.
+    :type z: double
+    :return: The distance to the border of the anisotropic ellipse.
+    :rtype: double
+    """
+
     term = (z ** 2) / (b ** 2)
     delta = 1 - term
     delta *= (a ** 2)
     return math.sqrt(delta)
 
 def refineFarm3D(params, wf):
+
+    """
+    Initializes a 'Box' field that sets points within the minimum bounding regoin
+    surrounding the farm to the farm's meshing constraint.
+
+    :param params: The parameter dictionary.
+    :type params: dict()
+    :param wf: The structure representing the wind farm.
+    :type wf: WindFarm
+    :return: The GMESH field that represents the box.
+    :rtype: int
+    """
+
     lc = params['refine']['farm']['length_scale']
     jitter = params['refine']['farm']['threshold_distance']
     lcb = params['refine']['background_length_scale']
     wf.adjustDistance(jitter)
 
-    print(wf.x_range[0])
     b = gmsh.model.mesh.field.add("Box")
     gmsh.model.mesh.field.setNumber(b, "XMin", wf.x_range[0])
     gmsh.model.mesh.field.setNumber(b, "XMax", wf.x_range[1])

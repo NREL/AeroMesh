@@ -5,6 +5,30 @@ import gmsh
 ####
 
 def generateTurbine2D(x, y, lcTurbine, dRotor, dWake, shudder, wake, wf):
+
+    """
+    Builds a single turbine in 2D space at the target (x, y) pair. Additionally,
+    updates the minimum bounding region representing the farm if necessary.
+
+    :param x: The x coordinate of the turbine center.
+    :type x: double
+    :param y: The y coordinate of the turbine center.
+    :type y: double
+    :param lcTurbine: The meshing constraint at the turbine.
+    :type lcTurbine: double
+    :param dRotor: The rotor distance.
+    :type dRotor: double
+    :param shudder: The concavity term for turbine generation.
+    :type shudder: double
+    :param wake: The direction of the wake.
+    :type wake: int
+    :param wf: The structure representing the wind farm.
+    :type wf: WindFarm
+    :return: The GMESH curve loop representation of the turbine.
+    :rtype: int
+
+    """
+
     curve = []
     
     if wake == 0:
@@ -45,6 +69,22 @@ def generateTurbine2D(x, y, lcTurbine, dRotor, dWake, shudder, wake, wf):
     return gmsh.model.geo.addCurveLoop(curve, reorient=True)
 
 def buildFarms2D(params, wf, domain):
+
+    """
+    Builds every turbine in the range [1, num_turbines].
+    It generates 2D meshes across the 1D curve loops that represent each turbine.
+
+    :param params: The parameter dictionary.
+    :type params: dict()
+    :param wf: The structure representing the wind farm.
+    :type wf: WindFarm
+    :param domain: The structure representing the domain.
+    :type domain: Domain
+    :return: A list of the 2D turbine meshes.
+    :rtype: list[int]
+
+    """
+
     turbines = []
 
     nFarms = params['refine']['turbine']['num_turbines']
@@ -70,6 +110,19 @@ def buildFarms2D(params, wf, domain):
     return turbines
 
 def refineFarm2D(params, wf):
+
+    """
+    Initializes a 'Box' field that sets points within the minimum bounding regoin
+    surrounding the farm to the farm's meshing constraint. This field is hard-coded
+    to have tag 998.
+
+    :param params: The parameter dictionary.
+    :type params: dict()
+    :param wf: The structure representing the wind farm.
+    :type wf: WindFarm
+
+    """
+
     dist = params['refine']['farm']['threshold_distance'] 
     wf.adjustDistance(dist)
     farmLC = params['refine']['farm']['length_scale'] 

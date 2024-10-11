@@ -13,7 +13,7 @@ def generate2DMesh(params):
     Executes a 2D meshing operation on params. Outputs results in the file out.vtk.
 
     :param params: A dictionary of the required parameters.
-    :type kind: dict()
+    :type params: dict()
 
     """
         
@@ -49,7 +49,7 @@ def generate3DMesh(params):
     Executes a 3D meshing operation on params. Outputs results in the file out.vtk.
 
     :param params: A dictionary of the required parameters.
-    :type kind: dict()
+    :type params: dict()
 
     """
 
