@@ -106,7 +106,7 @@ def main():
     else:
         generate2DMesh(params)
     
-    filename = 'out.vtk'
+    filename = 'out.msh'
     gmsh.write(filename)
 
     gmsh.finalize()
