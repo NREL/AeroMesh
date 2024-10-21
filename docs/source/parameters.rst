@@ -11,6 +11,7 @@ The YAML structure below details all possible parameters, their expected data ty
 .. code-block:: yaml
     :linenos:
 
+    filetype: string
     domain:
         terrain_path: string
         x_range: [double, double]
@@ -65,6 +66,9 @@ The following list details the parameters used across all meshing procedures. If
     * - Parameter
       - Description
       - Optional
+    * - filetype
+      - The file type of the GMESH output. By default, the output will be a .msh file.
+      - Yes.
     * - x_range
       - The minimum and maximum x-coordinates that define the meshing domain.
       - No.

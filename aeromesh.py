@@ -106,7 +106,8 @@ def main():
     else:
         generate2DMesh(params)
     
-    filename = 'out.msh'
+
+    filename = 'out.' + params['filetype']
     gmsh.write(filename)
 
     gmsh.finalize()
@@ -115,6 +116,7 @@ def setYAMLDefaults(params):
     refine = params['refine']
     domain = params['domain']
 
+    params.setdefault('filetype', 'msh')
 
     refine.setdefault('global_scale', 1)
     domain.setdefault('aspect_ratio', 1)
@@ -131,7 +133,7 @@ def verifyYAML(params):
     print("***----------------------------------------***")
     print("Validating YAML file.")
     for key in params:
-        if key not in ['refine', 'domain']:
+        if key not in ['refine', 'domain', 'filetype']:
             print("Unknown field: " + key)
             err = 1
     domainChecks = params['domain']
