@@ -5,7 +5,57 @@ from src.structures import Domain, WindFarm
 from src.terrain import buildTerrainFromFile, buildTerrainDefault, buildTerrain2D
 from src.functions2D import *
 from src.functions3D import *
+from src.refines import generateCustomRefines
+import meshio
+import numpy as np
 
+def toXDMF(ndim):
+    elements = gmsh.model.mesh.getElements()
+    loc = 2 if ndim == 3 else 1
+    locTets = 4 if ndim == 3 else 2
+    indexTris = np.where(elements[0] == loc)[0][0]
+    indexTets = np.where(elements[0] == locTets)[0][0]
+    points = gmsh.model.mesh.getNodes()[1].reshape(-1, 3)
+    cells = elements[2][indexTets].reshape(-1, ndim + 1) - 1
+    triangles = elements[2][indexTris].reshape(-1, ndim) - 1
+
+    faces = gmsh.model.getEntities(dim=ndim - 1)
+    tags = []
+    for face in faces:
+        target = face[1]
+        tag = 0
+        elements = gmsh.model.mesh.getElements(dim=ndim - 1, tag=target)
+        match target:
+            case 990:
+                tag = 6
+            case 989:
+                tag = 5
+            case 992:
+                tag = 3
+            case 993:
+                tag = 2
+            case 994:
+                tag = 1
+            case 995:
+                tag = 4
+            case _:
+                tag = 0
+        for _ in elements[1][0]:
+            tags.append(tag)
+
+    tags = np.array(tags).astype(int)
+
+    output_mesh_name = "out.xdmf"
+    output_boundary_mesh_name = output_mesh_name.split(".")[0] + "_boundary.xdmf"
+    if ndim == 3:
+        tetra_mesh = meshio.Mesh(points=points, cells={"tetra": cells})
+        boundary_mesh = meshio.Mesh(points=points, cells=[("triangle", triangles)], cell_data={"facet_tags":[tags]})
+    else:
+        tetra_mesh = meshio.Mesh(points=points, cells={"triangle": cells})
+        boundary_mesh = meshio.Mesh(points=points, cells=[("line", triangles)], cell_data={"facet_tags":[tags]})
+
+    meshio.write(output_mesh_name, tetra_mesh)
+    meshio.write(output_boundary_mesh_name, boundary_mesh)
 
 def generate2DMesh(params):
 
@@ -34,9 +84,16 @@ def generate2DMesh(params):
 
     farm.append(buildTerrain2D(params, domain))
     farm.extend(buildFarms2D(params, wf, domain))
-
     gmsh.model.geo.addPlaneSurface(farm)
+
+    fields = [998, 999]
     refineFarm2D(params, wf)
+    fields.extend(generateCustomRefines(params))
+
+    mesher = gmsh.model.mesh.field.add("Min")
+    gmsh.model.mesh.field.setNumbers(mesher, "FieldsList", fields)
+    gmsh.model.mesh.field.setAsBackgroundMesh(mesher)
+
     gmsh.option.setNumber("Mesh.Algorithm", 8)
 
     gmsh.model.geo.synchronize()
@@ -78,6 +135,7 @@ def generate3DMesh(params):
     fields = generateTurbines(params, domain, wf)
     fields.append(999) #Background field, reserved number
     fields.append(refineFarm3D(params, wf))
+    fields.extend(generateCustomRefines(params))
 
     gmsh.model.geo.synchronize()
     mesher = gmsh.model.mesh.field.add("Min")
@@ -106,9 +164,12 @@ def main():
     else:
         generate2DMesh(params)
     
-
-    filename = 'out.' + params['filetype']
-    gmsh.write(filename)
+    if params['filetype'] != 'xdmf':
+        filename = 'out.' + params['filetype']
+        gmsh.write(filename)
+    else:
+        ndim = params['domain']['dimension']
+        toXDMF(ndim)
 
     gmsh.finalize()
 
@@ -117,6 +178,7 @@ def setYAMLDefaults(params):
     domain = params['domain']
 
     params.setdefault('filetype', 'msh')
+    params.setdefault('refine_custom', {}).setdefault('num_refines', 0)
 
     refine.setdefault('global_scale', 1)
     domain.setdefault('aspect_ratio', 1)
@@ -133,11 +195,12 @@ def verifyYAML(params):
     print("***----------------------------------------***")
     print("Validating YAML file.")
     for key in params:
-        if key not in ['refine', 'domain', 'filetype']:
+        if key not in ['refine', 'domain', 'filetype', 'refine_custom']:
             print("Unknown field: " + key)
             err = 1
     domainChecks = params['domain']
     refineChecks = params['refine']
+    customChecks = params['refine_custom']
     for key in domainChecks:
         valid = ['terrain_path', 'x_range', 'y_range', 'height', 'aspect_ratio', 'aspect_distance', 'dimension']
         if key not in valid:
@@ -161,6 +224,17 @@ def verifyYAML(params):
                     err = 1
         elif key not in validParams:
             print("Unknown field: " + str(key))
+            err = 1
+    for key in customChecks:
+        validNums = [i for i in range(1, customChecks['num_refines'] + 1)]
+        if key in validNums:
+            validSubkeys = ['shape', 'x_range', 'y_range', 'radius', 'length_scale', 'height']
+            for subkey in customChecks[key]:
+                if subkey not in validSubkeys:
+                    print("Unknown refine_custom[" + str(subkey) + "] field: " + str(key))
+                    err = 1
+        else:
+            print("Unknown refine_custom field: " + str(key))
             err = 1
     farmChecks = params['refine']['farm']
     for key in farmChecks:

@@ -49,6 +49,8 @@ def test_turbinegen_full(domain):
 
     turbines = buildFarms2D(params, wf, domain)
 
+    gmsh.model.remove()
+
     assert len(turbines) == 2
     assert wf.x_range == [-1070, 250]
     assert wf.y_range == [130, 670]

@@ -100,14 +100,14 @@ def buildTerrainFromFile(params, domain):
     for i in range(4):
         gmsh.model.addDiscreteEntity(1, i + 1, [i + 1, i + 2 if i < 3 else 1])
 
-    gmsh.model.addDiscreteEntity(2, 1, [1, 2, 3, 4])
+    gmsh.model.addDiscreteEntity(2, 989, [1, 2, 3, 4])
 
-    gmsh.model.mesh.addNodes(2, 1, nodes, coords)
+    gmsh.model.mesh.addNodes(2, 989, nodes, coords)
 
     for i in range(4):
         gmsh.model.mesh.addElementsByType(i + 1, 15, [], [pnt[i]])
         gmsh.model.mesh.addElementsByType(i + 1, 1, [], lin[i])
-    gmsh.model.mesh.addElementsByType(1, 2, [], tris)
+    gmsh.model.mesh.addElementsByType(989, 2, [], tris)
 
     gmsh.model.mesh.reclassifyNodes()
 
@@ -126,7 +126,7 @@ def buildTerrainFromFile(params, domain):
     c12 = gmsh.model.geo.addLine(p3, 3)
     c13 = gmsh.model.geo.addLine(p4, 4)
     ll1 = gmsh.model.geo.addCurveLoop([c1, c2, c3, c4])
-    s1 = gmsh.model.geo.addPlaneSurface([ll1])
+    s1 = gmsh.model.geo.addPlaneSurface([ll1], tag=990) #Top Face
     ll3 = gmsh.model.geo.addCurveLoop([c1, c11, -1, -c10]) 
     s3 = gmsh.model.geo.addPlaneSurface([ll3], tag=995) #yMin face
     ll4 = gmsh.model.geo.addCurveLoop([c2, c12, -2, -c11]) 
@@ -135,13 +135,13 @@ def buildTerrainFromFile(params, domain):
     s5 = gmsh.model.geo.addPlaneSurface([ll5], tag=993) #yMax face
     ll6 = gmsh.model.geo.addCurveLoop([c4, c10, 4, -c13]) 
     s6 = gmsh.model.geo.addPlaneSurface([ll6], tag=992) #xMin face
-    sl1 = gmsh.model.geo.addSurfaceLoop([s1, s3, s4, s5, s6, 1])
-
+    sl1 = gmsh.model.geo.addSurfaceLoop([s1, s3, s4, s5, s6, 989]) #Bottom face (989)
 
     gmsh.model.geo.synchronize()
 
     return sl1
 
+####TO FIX: Tag Order as a sanity check
 def buildTerrainDefault(params, domain):
 
     """
@@ -194,7 +194,7 @@ def buildTerrainDefault(params, domain):
     lb4 =gmsh.model.geo.addLine(b2, b1)
 
     farmBase = gmsh.model.geo.addCurveLoop([lb1, lb2, lb3, lb4])
-    base = gmsh.model.geo.addPlaneSurface([farmBase])
+    base = gmsh.model.geo.addPlaneSurface([farmBase], tag=989)
 
     b5 = gmsh.model.geo.addPoint(xMax, yMin, totalHeight)
     b6 = gmsh.model.geo.addPoint(xMin, yMin, totalHeight)
@@ -207,22 +207,22 @@ def buildTerrainDefault(params, domain):
     lt4 =gmsh.model.geo.addLine(b6, b5)
 
     farmTop = gmsh.model.geo.addCurveLoop([lt1, lt2, lt3, lt4])
-    top = gmsh.model.geo.addPlaneSurface([farmTop])
+    top = gmsh.model.geo.addPlaneSurface([farmTop], tag=990)
 
     lc1 = gmsh.model.geo.addLine(b1, b5)
     lc2 = gmsh.model.geo.addLine(b2, b6)
     lc3 = gmsh.model.geo.addLine(b3, b7)
     lc4 = gmsh.model.geo.addLine(b4, b8)
 
-    face1 = gmsh.model.geo.addCurveLoop([lc1, lt4, lc2, lb4], reorient=True)
-    face2 = gmsh.model.geo.addCurveLoop([lc2, lt3, lc4, lb3], reorient=True)
-    face3 = gmsh.model.geo.addCurveLoop([lc4, lt2, lc3, lb2], reorient=True)
-    face4 = gmsh.model.geo.addCurveLoop([lc3, lt1, lc1, lb1], reorient=True)
+    face1 = gmsh.model.geo.addCurveLoop([lc1, lt4, lc2, lb4], reorient=True) #YMin Face
+    face2 = gmsh.model.geo.addCurveLoop([lc2, lt3, lc4, lb3], reorient=True) #XMin Face
+    face3 = gmsh.model.geo.addCurveLoop([lc4, lt2, lc3, lb2], reorient=True) #YMax Face
+    face4 = gmsh.model.geo.addCurveLoop([lc3, lt1, lc1, lb1], reorient=True) #XMax Face
 
-    f1 = gmsh.model.geo.addPlaneSurface([face1])
-    f2 = gmsh.model.geo.addPlaneSurface([face2])
-    f3 = gmsh.model.geo.addPlaneSurface([face3])
-    f4 = gmsh.model.geo.addPlaneSurface([face4])
+    f1 = gmsh.model.geo.addPlaneSurface([face1], tag=995)
+    f2 = gmsh.model.geo.addPlaneSurface([face2], tag=992)
+    f3 = gmsh.model.geo.addPlaneSurface([face3], tag=993)
+    f4 = gmsh.model.geo.addPlaneSurface([face4], tag=994)
 
     return gmsh.model.geo.addSurfaceLoop([base, f1, f2, f3, f4, top])
 
@@ -253,10 +253,10 @@ def buildTerrain2D(params, domain):
     b3 = gmsh.model.geo.addPoint(x_range[1], y_range[1], 0, lc)
     b4 = gmsh.model.geo.addPoint(x_range[0], y_range[1], 0, lc)
 
-    lb1 = gmsh.model.geo.addLine(b1, b3)
-    lb2 = gmsh.model.geo.addLine(b3, b4)
-    lb3 = gmsh.model.geo.addLine(b4, b2)
-    lb4 =gmsh.model.geo.addLine(b2, b1)
+    lb1 = gmsh.model.geo.addLine(b1, b3, tag=994) #XMax
+    lb2 = gmsh.model.geo.addLine(b3, b4, tag=993) #YMax
+    lb3 = gmsh.model.geo.addLine(b4, b2, tag=992) #XMin
+    lb4 =gmsh.model.geo.addLine(b2, b1, tag=995) #YMin
 
     farmBorder = gmsh.model.geo.addCurveLoop([lb1, lb2, lb3, lb4])
 

@@ -137,7 +137,3 @@ def refineFarm2D(params, wf):
     gmsh.model.mesh.field.setNumber(b, "ZMax", 1)
     gmsh.model.mesh.field.setNumber(b, "VIn", farmLC)
     gmsh.model.mesh.field.setNumber(b, "VOut", blc)
-
-    mesher = gmsh.model.mesh.field.add("Min")
-    gmsh.model.mesh.field.setNumbers(mesher, "FieldsList", [998, 999])
-    gmsh.model.mesh.field.setAsBackgroundMesh(mesher)
