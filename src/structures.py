@@ -22,7 +22,9 @@ class Domain():
             return False
         if y < self.y_range[0] or y > self.y_range[1]:
             return False
-        if z > self.height:
+        if z > self.height or z < 0:
+            return False
+        if self.interp and z < self.interp(x, y):
             return False
         return True
 

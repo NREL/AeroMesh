@@ -44,10 +44,10 @@ def generateTurbines(params, domain, wf):
             raise Exception("Invalid turbine location: (" + str(x) + ", " + str(y) + ", " + str(z)) + ")."
         
         # 0: points placed in x-direction 1: points placed in y-direction.
-        fields.extend(placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, aspect, wf))
+        fields.extend(placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, aspect, wf, domain))
     return fields
         
-def placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, aspect, wf):
+def placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, aspect, wf, domain):
 
     """
     Builds a single turbine in 3D space at the target (x, y, z) triple.
@@ -130,30 +130,42 @@ def placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, asp
     gmsh.model.geo.rotate(turbineTags, x, y, z, 0, 0, 1, inflow)
 
     gmsh.model.geo.synchronize()
-    gmsh.model.mesh.embed(0, turbine, 3, 999)
 
     for point in turbine:
         coords = gmsh.model.getValue(0, point, [])
-        wf.updateXMax(coords[0])
-        wf.updateXMin(coords[0])
-        wf.updateYMax(coords[1])
-        wf.updateYMin(coords[1])
-        wf.updateZMax(coords[2])
+        if domain.withinDomain(coords[0], coords[1], coords[2]):
+            wf.updateXMax(coords[0])
+            wf.updateXMin(coords[0])
+            wf.updateYMax(coords[1])
+            wf.updateYMin(coords[1])
+            wf.updateZMax(coords[2])
+        else:
+            gmsh.model.geo.remove([(0, point)])
+            turbine.remove(point)
+
+    gmsh.model.geo.synchronize()
+    gmsh.model.mesh.embed(0, turbine, 3, 999)
 
     for level in anisoPoints:
         levelTags = list(tag for tag in zip([0] * len(level), level))
         gmsh.model.geo.rotate(levelTags, x, y, z, 0, 0, 1, inflow)
 
         gmsh.model.geo.synchronize()
-        gmsh.model.mesh.embed(0, level, 3, 999)
 
         for point in level:
             coords = gmsh.model.getValue(0, point, [])
-            wf.updateXMax(coords[0])
-            wf.updateXMin(coords[0])
-            wf.updateYMax(coords[1])
-            wf.updateYMin(coords[1])
-            wf.updateZMax(coords[2])
+            if domain.withinDomain(coords[0], coords[1], coords[2]):
+                wf.updateXMax(coords[0])
+                wf.updateXMin(coords[0])
+                wf.updateYMax(coords[1])
+                wf.updateYMin(coords[1])
+                wf.updateZMax(coords[2])
+            else:
+                gmsh.model.geo.remove([(0, point)])
+                level.remove(point)
+
+        gmsh.model.geo.synchronize()
+        gmsh.model.mesh.embed(0, level, 3, 999)
 
     gmsh.model.geo.synchronize()
 
