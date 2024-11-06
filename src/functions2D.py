@@ -4,7 +4,7 @@ import gmsh
 ## 2D Meshing Functions
 ####
 
-def generateTurbine2D(x, y, lcTurbine, dRotor, dWake, shudder, wake, wf):
+def generateTurbine2D(x, y, lcTurbine, dRotor, dWake, shudder, inflow, wf):
 
     """
     Builds a single turbine in 2D space at the target (x, y) pair. Additionally,
@@ -30,32 +30,26 @@ def generateTurbine2D(x, y, lcTurbine, dRotor, dWake, shudder, wake, wf):
     """
 
     curve = []
-    
-    if wake == 0:
-        m1 = gmsh.model.geo.addPoint(x + dWake / 2, y + shudder / 2, 0, lcTurbine)
-        m1p = gmsh.model.geo.addPoint(x + dWake / 2, y - shudder / 2, 0, lcTurbine)
-        m2 = gmsh.model.geo.addPoint(x, y + dRotor / 2, 0, lcTurbine)
-        m3 = gmsh.model.geo.addPoint(x - dWake / 2, y + shudder / 2, 0, lcTurbine)
-        m3p = gmsh.model.geo.addPoint(x - dWake / 2, y - shudder / 2, 0, lcTurbine)
-        m4 = gmsh.model.geo.addPoint(x, y - dRotor / 2, 0, lcTurbine)
 
-        wf.updateXMax(x + dWake / 2)
-        wf.updateXMin(x - dWake / 2)
-        wf.updateYMax(y + dRotor / 2)
-        wf.updateYMin(y - dRotor / 2)
+    m1 = gmsh.model.geo.addPoint(x + dWake / 2, y + shudder / 2, 0, lcTurbine)
+    m1p = gmsh.model.geo.addPoint(x + dWake / 2, y - shudder / 2, 0, lcTurbine)
+    m2 = gmsh.model.geo.addPoint(x, y + dRotor / 2, 0, lcTurbine)
+    m3 = gmsh.model.geo.addPoint(x - dWake / 2, y + shudder / 2, 0, lcTurbine)
+    m3p = gmsh.model.geo.addPoint(x - dWake / 2, y - shudder / 2, 0, lcTurbine)
+    m4 = gmsh.model.geo.addPoint(x, y - dRotor / 2, 0, lcTurbine)
 
-    else:
-        m1 = gmsh.model.geo.addPoint(x + shudder / 2, y + dWake / 2, 0, lcTurbine)
-        m1p = gmsh.model.geo.addPoint(x - shudder / 2, y + dWake / 2, 0, lcTurbine)
-        m2 = gmsh.model.geo.addPoint(x + dRotor / 2, y, 0, lcTurbine)
-        m3 = gmsh.model.geo.addPoint(x + shudder / 2, y - dWake / 2, 0, lcTurbine)
-        m3p = gmsh.model.geo.addPoint(x - shudder / 2, y - dWake / 2, 0, lcTurbine)
-        m4 = gmsh.model.geo.addPoint(x - dRotor / 2, y, 0, lcTurbine)
+    points = [(0, m1), (0, m1p), (0, m2), (0, m3), (0, m3p), (0, m4)]
 
-        wf.updateXMax(x + dRotor / 2)
-        wf.updateXMin(x - dRotor / 2)
-        wf.updateYMax(y + dWake / 2)
-        wf.updateYMin(y - dWake / 2)
+    gmsh.model.geo.rotate(points, x, y, 0, 0, 0, 1, inflow)
+
+    gmsh.model.geo.synchronize()
+
+    for point in points:
+        coords = gmsh.model.getValue(0, point[1], [])
+        wf.updateXMax(coords[0])
+        wf.updateXMin(coords[0])
+        wf.updateYMax(coords[1])
+        wf.updateYMin(coords[1])
 
     turbine = gmsh.model.geo.addPoint(x, y, 0, lcTurbine)
 
@@ -93,17 +87,17 @@ def buildFarms2D(params, wf, domain):
     downstream = params['refine']['turbine']['threshold_downstream_distance']
     rotor = params['refine']['turbine']['threshold_rotor_distance']
     shudder = params['refine']['turbine']['shudder']
+    inflow = params['domain']['inflow_angle']
 
     for i in range(nFarms):
         turbineData = params['refine']['turbine'][i + 1]
         x = turbineData['x'] 
         y = turbineData['y']
-        wake = turbineData['wake'] 
 
         if not domain.withinDomain(x, y):
             raise Exception("Invalid turbine location: (" + str(x) + ", " + str(y)) + ")."
         
-        turbine = generateTurbine2D(x, y, lcTurbine, rotor, upstream + downstream, shudder, wake, wf)
+        turbine = generateTurbine2D(x, y, lcTurbine, rotor, upstream + downstream, shudder, inflow, wf)
         turbines.append(turbine)
         gmsh.model.geo.addPlaneSurface([turbine])
 

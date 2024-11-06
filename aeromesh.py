@@ -8,6 +8,7 @@ from src.functions3D import *
 from src.refines import generateCustomRefines
 import meshio
 import numpy as np
+import math
 
 def toXDMF(ndim):
     elements = gmsh.model.mesh.getElements()
@@ -159,6 +160,8 @@ def main():
     setYAMLDefaults(params)
     verifyYAML(params)
 
+    params['domain']['inflow_angle'] *= math.pi / 180
+
     if params['domain']['dimension'] == 3:
         generate3DMesh(params)
     else:
@@ -170,6 +173,9 @@ def main():
     else:
         ndim = params['domain']['dimension']
         toXDMF(ndim)
+
+    if '-v' in sys.argv:
+        gmsh.fltk.run()
 
     gmsh.finalize()
 
@@ -184,6 +190,7 @@ def setYAMLDefaults(params):
     domain.setdefault('aspect_ratio', 1)
 
     domain.setdefault('aspect_distance', 0)
+    domain.setdefault('inflow_angle', 0)
     refine.setdefault('turbine', {}).setdefault('num_turbines', 0)
     refine.setdefault('turbine', {}).setdefault('shudder', params['refine']['turbine']['threshold_rotor_distance'])
 
@@ -202,7 +209,7 @@ def verifyYAML(params):
     refineChecks = params['refine']
     customChecks = params['refine_custom']
     for key in domainChecks:
-        valid = ['terrain_path', 'x_range', 'y_range', 'height', 'aspect_ratio', 'aspect_distance', 'dimension']
+        valid = ['terrain_path', 'x_range', 'y_range', 'height', 'aspect_ratio', 'aspect_distance', 'dimension', 'inflow_angle']
         if key not in valid:
             print("Unknown field: " + key)
             err = 1
@@ -227,7 +234,9 @@ def verifyYAML(params):
             err = 1
     for key in customChecks:
         validNums = [i for i in range(1, customChecks['num_refines'] + 1)]
-        if key in validNums:
+        if key == 'num_refines':
+            continue
+        elif key in validNums:
             validSubkeys = ['shape', 'x_range', 'y_range', 'radius', 'length_scale', 'height']
             for subkey in customChecks[key]:
                 if subkey not in validSubkeys:
