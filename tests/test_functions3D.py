@@ -21,7 +21,8 @@ def params():
         'y_range': [-1200, 1200],
         'height': 1000,
         'aspect_ratio': 1,
-        'aspect_distance': 0
+        'aspect_distance': 0,
+        'inflow_angle': 0
     }
     params['refine'] = {
         'background_length_scale': 100,
@@ -40,11 +41,13 @@ def test_turbinegen_isolated(domain, params):
     sl = buildTerrainDefault(params, domain)
     gmsh.model.geo.addVolume([sl], tag=999)
 
+    wf = WindFarm()
+
     isotropic_test = placeTurbine(500, 500, 100, 240, 300, 
-                                  100, 30, 100, 50, 0, 1, domain)
+                                  100, 30, 100, 50, 0, 1, wf, domain)
     
     anisotropic_test = placeTurbine(-700, -700, 100, 240, 300, 
-                                  100, 30, 100, 50, 0, 3, domain)
+                                  100, 30, 100, 50, 0, 3, wf, domain)
     
     gmsh.model.remove()
 
@@ -83,9 +86,9 @@ def test_turbinegen_full(domain, params):
     gmsh.model.remove()
 
     assert len(fields_test) == 6
-    assert wf.x_range == [-1200, 500]
-    assert wf.y_range == [300, 1100]
-    assert wf.zMax == 200
+    assert wf.x_range == [-1200, 800]
+    assert wf.y_range == [300, 800]
+    assert wf.zMax == 300
 
 def test_anisotropy(domain, params):
     gmsh.model.add("3D Anisotropy Test")
