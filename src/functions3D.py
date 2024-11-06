@@ -41,7 +41,7 @@ def generateTurbines(params, domain, wf):
             z = 100
 
         if not domain.withinDomain(x, y, z):
-            raise Exception("Invalid turbine location: (" + str(x) + ", " + str(y) + ", " + str(z)) + ")."
+            raise Exception("Invalid turbine location.")
         
         # 0: points placed in x-direction 1: points placed in y-direction.
         fields.extend(placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, aspect, wf, domain))

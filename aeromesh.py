@@ -186,11 +186,11 @@ def setYAMLDefaults(params):
     params.setdefault('filetype', 'msh')
     params.setdefault('refine_custom', {}).setdefault('num_refines', 0)
 
-    refine.setdefault('global_scale', 1)
     domain.setdefault('aspect_ratio', 1)
-
     domain.setdefault('aspect_distance', 0)
     domain.setdefault('inflow_angle', 0)
+
+    refine.setdefault('global_scale', 1)
     refine.setdefault('turbine', {}).setdefault('num_turbines', 0)
     refine.setdefault('turbine', {}).setdefault('shudder', params['refine']['turbine']['threshold_rotor_distance'])
 

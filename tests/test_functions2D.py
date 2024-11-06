@@ -15,7 +15,8 @@ def test_turbinegen_full(domain):
     params = dict()
     params['domain'] = {
         'x_range': [-1200, 1200],
-        'y_range': [-1200, 1200]
+        'y_range': [-1200, 1200],
+        'inflow_angle': 0
     }
     params['refine'] = {
         'background_length_scale': 100,
@@ -35,12 +36,10 @@ def test_turbinegen_full(domain):
     params['refine']['turbine'][1] = {
         'x': 200,
         'y': 400,
-        'wake': 1
     }
     params['refine']['turbine'][2] = {
         'x': -800,
         'y': 300,
-        'wake': 0
     }
 
     struct = buildTerrain2D(params, domain)
@@ -52,7 +51,7 @@ def test_turbinegen_full(domain):
     gmsh.model.remove()
 
     assert len(turbines) == 2
-    assert wf.x_range == [-1070, 250]
-    assert wf.y_range == [130, 670]
+    assert wf.x_range == [-1070, 470]
+    assert wf.y_range == [250, 450]
 
     

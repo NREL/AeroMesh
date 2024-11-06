@@ -95,7 +95,7 @@ def buildFarms2D(params, wf, domain):
         y = turbineData['y']
 
         if not domain.withinDomain(x, y):
-            raise Exception("Invalid turbine location: (" + str(x) + ", " + str(y)) + ")."
+            raise Exception("Invalid turbine location.")
         
         turbine = generateTurbine2D(x, y, lcTurbine, rotor, upstream + downstream, shudder, inflow, wf)
         turbines.append(turbine)
