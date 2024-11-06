@@ -28,6 +28,7 @@ def generateTurbines(params, domain, wf):
     downstream = params['refine']['turbine']['threshold_downstream_distance']
     rotor = params['refine']['turbine']['threshold_rotor_distance']
     aspect = params['domain']['aspect_ratio']
+    inflow = params['domain']['inflow_angle']
 
     interp = domain.interp
     for i in range(nFarms):
@@ -43,23 +44,10 @@ def generateTurbines(params, domain, wf):
             raise Exception("Invalid turbine location: (" + str(x) + ", " + str(y) + ", " + str(z)) + ")."
         
         # 0: points placed in x-direction 1: points placed in y-direction.
-        wake = turbineData['wake']
-        eUpstream, eDownstream = checkBounds(domain, upstream, downstream, (x, y), wake)
-        fields.extend(placeTurbine(x, y, z, eUpstream, eDownstream, rotor, lc, lcb, lcf, wake, aspect, domain))
-        if wake == 0:
-            wf.updateXMax(x + eDownstream)
-            wf.updateXMin(x - eUpstream)
-            wf.updateYMax(y)
-            wf.updateYMin(y)
-        else:
-            wf.updateYMin(y - eUpstream)
-            wf.updateYMax(y + eDownstream)
-            wf.updateXMax(x)
-            wf.updateXMin(x)
-        wf.updateZMax(z + rotor)
+        fields.extend(placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, aspect, wf))
     return fields
         
-def placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, wake, aspect, domain):
+def placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, aspect, wf):
 
     """
     Builds a single turbine in 3D space at the target (x, y, z) triple.
@@ -98,69 +86,23 @@ def placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, wake, aspec
     ###
     # Initialize proper data structures.
     ###
-    goY = 0
-    goX = 0
-    if wake == 0:
-        goX = 1
-    else:
-        goY = 1
 
     increment = rotor / 2
     downPoints = math.ceil(downstream / increment)
     upPoints = math.ceil(upstream / increment)
     turbine = [gmsh.model.geo.addPoint(x, y, z)]
     anisoPoints = []
-    xMinB = []
-    xMaxB = []
-    yMinB = []
-    yMaxB = []
-
-
-    ###
-    # Check boundary conditions.
-    ###
-    xMin, xMax, yMin, yMax = 0, 0, 0, 0
-
-    if x + goX * increment * downPoints > domain.x_range[1]:
-        downPoints -= 1
-        xMax = 1
-    if y + goY * increment * downPoints > domain.y_range[1]:
-        downPoints -= 1
-        yMax = 1
-    if x - goX * increment * upPoints < domain.x_range[0]:
-        upPoints -= 1
-        xMin = 1
-    if y - goX * increment * upPoints < domain.y_range[0]:
-        upPoints -= 1
-        yMin = 1
 
 
     ###
     # These loops build the body of the turbine.
     ###
     for i in range(1, downPoints + 1):
-        turbine.append(gmsh.model.geo.addPoint(x + goX * increment * i, y + goY * increment * i, z))
-    
-    if xMax == 1:
-        point = gmsh.model.geo.addPoint(domain.x_range[1], y, z)
-        turbine.append(point)
-        xMaxB.append(point)
-    if yMax == 1:
-        point = gmsh.model.geo.addPoint(x, domain.y_range[1], z)
-        turbine.append(point)
-        yMaxB.append(point)
+        turbine.append(gmsh.model.geo.addPoint(x + increment * i, y, z))
    
     for i in range(1, upPoints + 1):
-        turbine.append(gmsh.model.geo.addPoint(x - goX * increment * i, y - goY * increment * i, z))
+        turbine.append(gmsh.model.geo.addPoint(x - increment * i, y, z))
     
-    if xMin == 1:
-        point = gmsh.model.geo.addPoint(domain.x_range[0], y, z)
-        turbine.append(point)
-        xMinB.append(point)
-    if yMin == 1:
-        point = gmsh.model.geo.addPoint(x, domain.y_range[0], z)
-        turbine.append(point)
-        yMinB.append(point)
 
     if aspect == 1:
         aspect = 0 # Locally turns off anisotropy loops.
@@ -171,75 +113,49 @@ def placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, wake, aspec
     for i in range(1, aspect + 1):
         level = [gmsh.model.geo.addPoint(x, y, z + (rotor * i)), gmsh.model.geo.addPoint(x, y, z - (rotor * i))]
         for j in range(1, downPoints + 1):
-            level.append(gmsh.model.geo.addPoint(x + goX * increment * j, y + goY * increment * j, z + (rotor * i)))
-            level.append(gmsh.model.geo.addPoint(x + goX * increment * j, y + goY * increment * j, z - (rotor * i)))
-        
-        if xMax == 1:
-            upper = gmsh.model.geo.addPoint(domain.x_range[1], y, z + (rotor * i))
-            lower = gmsh.model.geo.addPoint(domain.x_range[1], y, z - (rotor * i))
-            level.append(upper)
-            level.append(lower)
-            xMaxB.append(upper)
-            xMaxB.append(lower)
-        if yMax == 1:
-            upper = gmsh.model.geo.addPoint(x, domain.y_range[1], z + (rotor * i))
-            lower = gmsh.model.geo.addPoint(x, domain.y_range[1], z - (rotor * i))
-            level.append(upper)
-            level.append(lower)
-            yMaxB.append(upper)
-            yMaxB.append(lower)
+            level.append(gmsh.model.geo.addPoint(x + increment * j, y, z + (rotor * i)))
+            level.append(gmsh.model.geo.addPoint(x + increment * j, y, z - (rotor * i)))
 
         for j in range(1, upPoints + 1):
-            level.append(gmsh.model.geo.addPoint(x - goX * increment * j, y - goY * increment * j, z + (rotor * i)))
-            level.append(gmsh.model.geo.addPoint(x - goX * increment * j, y - goY * increment * j, z - (rotor * i)))
-
-        if xMin == 1:
-            upper = gmsh.model.geo.addPoint(domain.x_range[0], y, z + (rotor * i))
-            lower = gmsh.model.geo.addPoint(domain.x_range[0], y, z - (rotor * i))
-            level.append(upper)
-            level.append(lower)
-            xMinB.append(upper)
-            xMinB.append(lower)
-        if yMin == 1:
-            upper = gmsh.model.geo.addPoint(x, domain.y_range[0], z + (rotor * i))
-            lower = gmsh.model.geo.addPoint(x, domain.y_range[0], z - (rotor * i))
-            level.append(upper)
-            level.append(lower)
-            yMinB.append(upper)
-            yMinB.append(lower)
+            level.append(gmsh.model.geo.addPoint(x - increment * j, y, z + (rotor * i)))
+            level.append(gmsh.model.geo.addPoint(x - increment * j, y, z - (rotor * i)))
         
         anisoPoints.append(level)
 
     ###
     # Embed all the points into the proper surfaces and volumes.
     ###
+
+    turbineTags = list(tag for tag in zip([0] * len(turbine), turbine))
+    gmsh.model.geo.rotate(turbineTags, x, y, z, 0, 0, 1, inflow)
+
     gmsh.model.geo.synchronize()
     gmsh.model.mesh.embed(0, turbine, 3, 999)
 
+    for point in turbine:
+        coords = gmsh.model.getValue(0, point, [])
+        wf.updateXMax(coords[0])
+        wf.updateXMin(coords[0])
+        wf.updateYMax(coords[1])
+        wf.updateYMin(coords[1])
+        wf.updateZMax(coords[2])
+
     for level in anisoPoints:
+        levelTags = list(tag for tag in zip([0] * len(level), level))
+        gmsh.model.geo.rotate(levelTags, x, y, z, 0, 0, 1, inflow)
+
         gmsh.model.geo.synchronize()
         gmsh.model.mesh.embed(0, level, 3, 999)
+
+        for point in level:
+            coords = gmsh.model.getValue(0, point, [])
+            wf.updateXMax(coords[0])
+            wf.updateXMin(coords[0])
+            wf.updateYMax(coords[1])
+            wf.updateYMin(coords[1])
+            wf.updateZMax(coords[2])
+
     gmsh.model.geo.synchronize()
-
-    if len(xMinB) > 0:
-        gmsh.model.geo.synchronize()
-        gmsh.model.mesh.embed(0, xMinB, 2, 992)
-        gmsh.model.geo.synchronize()
-
-    if len(xMaxB) > 0:
-        gmsh.model.geo.synchronize()
-        gmsh.model.mesh.embed(0, xMaxB, 2, 994)
-        gmsh.model.geo.synchronize()
-    
-    if len(yMinB) > 0:
-        gmsh.model.geo.synchronize()
-        gmsh.model.mesh.embed(0, yMinB, 2, 995)
-        gmsh.model.geo.synchronize()
-
-    if len(yMaxB) > 0:
-        gmsh.model.geo.synchronize()
-        gmsh.model.mesh.embed(0, yMaxB, 2, 993)
-        gmsh.model.geo.synchronize()
 
     ###
     # Initialize the distance fields.
@@ -278,41 +194,6 @@ def placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, wake, aspec
         fields.append(ta)
 
     return fields
-
-def checkBounds(domain, upstream, downstream, origin, wake):
-
-    """
-    Checks if the extension of a turbine's wake interests the borders of the domain.
-    If this case occurs, the wake is stopped at the domain boundary.
-
-    :param domain: The structure representing the domain.
-    :type domain: Domain
-    :param upstream: The extension of the wake in the negative direction.
-    :type upstream: double
-    :param downstream: The extension of the wake in the positive direction.
-    :type upstream: double
-    :param origin: The turbine center.
-    :type origin: (double, double)
-    :param wake: The direction of the wake.
-    :type wake: int
-    :return: An adjusted upstream and downstream distance that prevent domain violations.
-    :rtype: (double, double)
-
-    """
-
-    eUpstream = upstream
-    eDownstream = downstream
-    if wake == 0:
-        if origin[0] - upstream < domain.x_range[0]:
-            eUpstream = origin[0] - domain.x_range[0]
-        if origin[0] + downstream > domain.x_range[1]:
-            eDownstream = domain.x_range[1] - origin[0]
-    else:
-        if origin[1] - upstream < domain.y_range[0]:
-            eUpstream = origin[1] - domain.y_range[0]
-        if origin[1] + downstream > domain.y_range[1]:
-            eDownstream = domain.y_range[1] - origin[1]
-    return eUpstream, eDownstream
 
 def anisotropyScale(params):
 

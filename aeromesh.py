@@ -224,7 +224,7 @@ def verifyYAML(params):
         validParams = ['num_turbines', 'length_scale', 'threshold_upstream_distance', 'threshold_downstream_distance',
                        'threshold_rotor_distance', 'shudder']
         if key in validNums:
-            validSubkeys = ['x', 'y', 'wake']
+            validSubkeys = ['x', 'y']
             for subkey in turbineChecks[key]:
                 if subkey not in validSubkeys:
                     print("Unknown field: " + str(key))
