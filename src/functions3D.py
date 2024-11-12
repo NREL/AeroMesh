@@ -1,5 +1,6 @@
 import gmsh
 import math
+import numpy as np
 
 def generateTurbines(params, domain, wf):
 
@@ -38,7 +39,7 @@ def generateTurbines(params, domain, wf):
         if interp is not None:
             z = (interp(x, y) + 100) * aspect
         else:
-            z = 100
+            z = 100 * aspect
 
         if not domain.withinDomain(x, y, z):
             raise Exception("Invalid turbine location.")
@@ -273,16 +274,41 @@ def refineFarm3D(params, wf):
     lc = params['refine']['farm']['length_scale']
     jitter = params['refine']['farm']['threshold_distance']
     lcb = params['refine']['background_length_scale']
-    wf.adjustDistance(jitter)
+    farmType = params['refine']['farm']['type']
 
-    b = gmsh.model.mesh.field.add("Box")
-    gmsh.model.mesh.field.setNumber(b, "XMin", wf.x_range[0])
-    gmsh.model.mesh.field.setNumber(b, "XMax", wf.x_range[1])
-    gmsh.model.mesh.field.setNumber(b, "YMin", wf.y_range[0])
-    gmsh.model.mesh.field.setNumber(b, "YMax", wf.y_range[1])
-    gmsh.model.mesh.field.setNumber(b, "ZMin", 0)
-    gmsh.model.mesh.field.setNumber(b, "ZMax", wf.zMax)
-    gmsh.model.mesh.field.setNumber(b, "VIn", lc)
-    gmsh.model.mesh.field.setNumber(b, "VOut", lcb)
+    
+    if farmType == 'box':
+        wf.adjustDistance(jitter)
+        b = gmsh.model.mesh.field.add("Box")
+        gmsh.model.mesh.field.setNumber(b, "XMin", wf.x_range[0])
+        gmsh.model.mesh.field.setNumber(b, "XMax", wf.x_range[1])
+        gmsh.model.mesh.field.setNumber(b, "YMin", wf.y_range[0])
+        gmsh.model.mesh.field.setNumber(b, "YMax", wf.y_range[1])
+        gmsh.model.mesh.field.setNumber(b, "ZMin", 0)
+        gmsh.model.mesh.field.setNumber(b, "ZMax", wf.zMax)
+        gmsh.model.mesh.field.setNumber(b, "VIn", lc)
+        gmsh.model.mesh.field.setNumber(b, "VOut", lcb)
 
-    return b
+        return b
+    elif farmType == 'cylinder':
+        centerX = (wf.x_range[0] + wf.x_range[1]) / 2
+        centerY = (wf.y_range[0] + wf.y_range[1]) / 2
+
+        center = np.array([centerX, centerY])
+        corner = np.array([wf.x_range[1], wf.y_range[1]])
+        radius = np.linalg.norm(center - corner)
+
+        radius += jitter
+        wf.zMax += jitter
+
+        c = gmsh.model.mesh.field.add("Cylinder")
+        gmsh.model.mesh.field.setNumber(c, "Radius", radius)
+        gmsh.model.mesh.field.setNumber(c, "VIn", lc)
+        gmsh.model.mesh.field.setNumber(c, "VOut", lcb)
+        gmsh.model.mesh.field.setNumber(c, "ZAxis", wf.zMax)
+        gmsh.model.mesh.field.setNumber(c, "XCenter", centerX)
+        gmsh.model.mesh.field.setNumber(c, "YCenter", centerY)
+
+        return c
+    else:
+        return []

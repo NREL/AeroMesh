@@ -87,8 +87,10 @@ def generate2DMesh(params):
     farm.extend(buildFarms2D(params, wf, domain))
     gmsh.model.geo.addPlaneSurface(farm)
 
-    fields = [998, 999]
-    refineFarm2D(params, wf)
+    fields = [999]
+    if params['refine']['farm']['type'] != 'none':
+        fields.append(998)
+        refineFarm2D(params, wf)
     fields.extend(generateCustomRefines(params))
 
     mesher = gmsh.model.mesh.field.add("Min")
@@ -196,6 +198,7 @@ def setYAMLDefaults(params):
 
     refine.setdefault('farm', {}).setdefault('length_scale', params['refine']['background_length_scale'])
     refine.setdefault('farm', {}).setdefault('threshold_distance', 0)
+    refine.setdefault('farm', {}).setdefault('type', 'none')
 
 def verifyYAML(params):
     err = 0
@@ -247,7 +250,7 @@ def verifyYAML(params):
             err = 1
     farmChecks = params['refine']['farm']
     for key in farmChecks:
-        valid = ['length_scale', 'threshold_distance']
+        valid = ['length_scale', 'threshold_distance', 'type']
         if key not in valid:
             print("Unknown field: " + key)
             err = 1
