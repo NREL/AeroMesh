@@ -137,7 +137,9 @@ def generate3DMesh(params):
     wf = WindFarm()
     fields = generateTurbines(params, domain, wf)
     fields.append(999) #Background field, reserved number
-    fields.append(refineFarm3D(params, wf))
+    farmRefine = refineFarm3D(params, wf)
+    if farmRefine:
+        fields.append(farmRefine)
     fields.extend(generateCustomRefines(params))
 
     gmsh.model.geo.synchronize()

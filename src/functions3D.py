@@ -275,7 +275,6 @@ def refineFarm3D(params, wf):
     jitter = params['refine']['farm']['threshold_distance']
     lcb = params['refine']['background_length_scale']
     farmType = params['refine']['farm']['type']
-
     
     if farmType == 'box':
         wf.adjustDistance(jitter)
@@ -291,15 +290,13 @@ def refineFarm3D(params, wf):
 
         return b
     elif farmType == 'cylinder':
+        wf.adjustDistance(jitter)
         centerX = (wf.x_range[0] + wf.x_range[1]) / 2
         centerY = (wf.y_range[0] + wf.y_range[1]) / 2
 
         center = np.array([centerX, centerY])
         corner = np.array([wf.x_range[1], wf.y_range[1]])
         radius = np.linalg.norm(center - corner)
-
-        radius += jitter
-        wf.zMax += jitter
 
         c = gmsh.model.mesh.field.add("Cylinder")
         gmsh.model.mesh.field.setNumber(c, "Radius", radius)
@@ -311,4 +308,4 @@ def refineFarm3D(params, wf):
 
         return c
     else:
-        return []
+        return None
