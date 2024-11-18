@@ -88,7 +88,7 @@ def test_turbinegen_full(domain, params):
     assert len(fields_test) == 6
     assert wf.x_range == [-1200, 800]
     assert wf.y_range == [300, 800]
-    assert wf.zMax == 300
+    assert wf.zMax == 400
 
 def test_anisotropy(domain, params):
     gmsh.model.add("3D Anisotropy Test")

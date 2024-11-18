@@ -87,8 +87,10 @@ def generate2DMesh(params):
     farm.extend(buildFarms2D(params, wf, domain))
     gmsh.model.geo.addPlaneSurface(farm)
 
-    fields = [998, 999]
-    refineFarm2D(params, wf)
+    fields = [999]
+    if params['refine']['farm']['type'] != 'none':
+        fields.append(998)
+        refineFarm2D(params, wf)
     fields.extend(generateCustomRefines(params))
 
     mesher = gmsh.model.mesh.field.add("Min")
@@ -135,7 +137,9 @@ def generate3DMesh(params):
     wf = WindFarm()
     fields = generateTurbines(params, domain, wf)
     fields.append(999) #Background field, reserved number
-    fields.append(refineFarm3D(params, wf))
+    farmRefine = refineFarm3D(params, wf)
+    if farmRefine:
+        fields.append(farmRefine)
     fields.extend(generateCustomRefines(params))
 
     gmsh.model.geo.synchronize()
@@ -196,6 +200,7 @@ def setYAMLDefaults(params):
 
     refine.setdefault('farm', {}).setdefault('length_scale', params['refine']['background_length_scale'])
     refine.setdefault('farm', {}).setdefault('threshold_distance', 0)
+    refine.setdefault('farm', {}).setdefault('type', 'none')
 
 def verifyYAML(params):
     err = 0
@@ -247,7 +252,7 @@ def verifyYAML(params):
             err = 1
     farmChecks = params['refine']['farm']
     for key in farmChecks:
-        valid = ['length_scale', 'threshold_distance']
+        valid = ['length_scale', 'threshold_distance', 'type']
         if key not in valid:
             print("Unknown field: " + key)
             err = 1

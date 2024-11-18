@@ -1,4 +1,5 @@
 import gmsh
+import numpy as np
 
 ####
 ## 2D Meshing Functions
@@ -118,16 +119,34 @@ def refineFarm2D(params, wf):
     """
 
     dist = params['refine']['farm']['threshold_distance'] 
-    wf.adjustDistance(dist)
     farmLC = params['refine']['farm']['length_scale'] 
     blc = params['refine']['background_length_scale']
+    ftype = params['refine']['farm']['type']
 
-    b = gmsh.model.mesh.field.add("Box", tag=998)
-    gmsh.model.mesh.field.setNumber(b, "XMin", wf.x_range[0])
-    gmsh.model.mesh.field.setNumber(b, "XMax", wf.x_range[1])
-    gmsh.model.mesh.field.setNumber(b, "YMin", wf.y_range[0])
-    gmsh.model.mesh.field.setNumber(b, "YMax", wf.y_range[1])
-    gmsh.model.mesh.field.setNumber(b, "ZMin", 0)
-    gmsh.model.mesh.field.setNumber(b, "ZMax", 1)
-    gmsh.model.mesh.field.setNumber(b, "VIn", farmLC)
-    gmsh.model.mesh.field.setNumber(b, "VOut", blc)
+    wf.adjustDistance(dist)
+
+    if ftype == 'box':
+        b = gmsh.model.mesh.field.add("Box", tag=998)
+        gmsh.model.mesh.field.setNumber(b, "XMin", wf.x_range[0])
+        gmsh.model.mesh.field.setNumber(b, "XMax", wf.x_range[1])
+        gmsh.model.mesh.field.setNumber(b, "YMin", wf.y_range[0])
+        gmsh.model.mesh.field.setNumber(b, "YMax", wf.y_range[1])
+        gmsh.model.mesh.field.setNumber(b, "ZMin", 0)
+        gmsh.model.mesh.field.setNumber(b, "ZMax", 1)
+        gmsh.model.mesh.field.setNumber(b, "VIn", farmLC)
+        gmsh.model.mesh.field.setNumber(b, "VOut", blc)
+    else:
+        centerX = (wf.x_range[0] + wf.x_range[1]) / 2
+        centerY = (wf.y_range[0] + wf.y_range[1]) / 2
+
+        center = np.array([centerX, centerY])
+        corner = np.array([wf.x_range[1], wf.y_range[1]])
+        radius = np.linalg.norm(center - corner)
+
+        c = gmsh.model.mesh.field.add("Cylinder", tag=998)
+        gmsh.model.mesh.field.setNumber(c, "Radius", radius)
+        gmsh.model.mesh.field.setNumber(c, "VIn", farmLC)
+        gmsh.model.mesh.field.setNumber(c, "VOut", blc)
+        gmsh.model.mesh.field.setNumber(c, "ZAxis", 1)
+        gmsh.model.mesh.field.setNumber(c, "XCenter", centerX)
+        gmsh.model.mesh.field.setNumber(c, "YCenter", centerY)
