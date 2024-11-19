@@ -242,7 +242,7 @@ def verifyYAML(params):
         if key == 'num_refines':
             continue
         elif key in validNums:
-            validSubkeys = ['shape', 'x_range', 'y_range', 'radius', 'length_scale', 'height']
+            validSubkeys = ['type', 'x_range', 'y_range', 'radius', 'length_scale', 'height']
             for subkey in customChecks[key]:
                 if subkey not in validSubkeys:
                     print("Unknown refine_custom[" + str(key) + "] field: " + str(subkey))

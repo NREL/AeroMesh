@@ -7,7 +7,7 @@ def generateCustomRefines(params):
 
     fields = []
     for i in range(1, n_refines + 1):
-        shape = params['refine_custom'][i]['shape']
+        shape = params['refine_custom'][i]['type']
         if shape == 'box':
             x = params['refine_custom'][i]['x_range']
             y = params['refine_custom'][i]['y_range']
