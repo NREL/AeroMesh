@@ -245,7 +245,7 @@ def verifyYAML(params):
             validSubkeys = ['shape', 'x_range', 'y_range', 'radius', 'length_scale', 'height']
             for subkey in customChecks[key]:
                 if subkey not in validSubkeys:
-                    print("Unknown refine_custom[" + str(subkey) + "] field: " + str(key))
+                    print("Unknown refine_custom[" + str(key) + "] field: " + str(subkey))
                     err = 1
         else:
             print("Unknown refine_custom field: " + str(key))

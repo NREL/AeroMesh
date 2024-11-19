@@ -6,7 +6,7 @@ def generateCustomRefines(params):
     blc = params['refine']['background_length_scale']
 
     fields = []
-    for i in range(n_refines):
+    for i in range(1, n_refines + 1):
         shape = params['refine_custom'][i]['shape']
         if shape == 'box':
             x = params['refine_custom'][i]['x_range']

@@ -117,8 +117,6 @@ def placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, asp
             level.append(gmsh.model.geo.addPoint(x + increment * j, y, z + (rotor * i)))
             level.append(gmsh.model.geo.addPoint(x + increment * j, y, z - (rotor * i)))
 
-            print(z)
-
         for j in range(1, upPoints + 1):
             level.append(gmsh.model.geo.addPoint(x - increment * j, y, z + (rotor * i)))
             level.append(gmsh.model.geo.addPoint(x - increment * j, y, z - (rotor * i)))
