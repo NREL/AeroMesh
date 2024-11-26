@@ -5,7 +5,7 @@ import numpy as np
 ## 2D Meshing Functions
 ####
 
-def generateTurbine2D(x, y, lcTurbine, dRotor, dWake, shudder, inflow, wf):
+def generateTurbine2D(x, y, lcTurbine, lcBackground, dRotor, wf):
 
     """
     Builds a single turbine in 2D space at the target (x, y) pair. Additionally,
@@ -17,51 +17,35 @@ def generateTurbine2D(x, y, lcTurbine, dRotor, dWake, shudder, inflow, wf):
     :type y: double
     :param lcTurbine: The meshing constraint at the turbine.
     :type lcTurbine: double
+    :param lcBackground: The meshing constraint at the background.
+    :type lcTurbine: double
     :param dRotor: The rotor distance.
     :type dRotor: double
-    :param shudder: The concavity term for turbine generation.
-    :type shudder: double
-    :param wake: The direction of the wake.
-    :type wake: int
     :param wf: The structure representing the wind farm.
     :type wf: WindFarm
-    :return: The GMESH curve loop representation of the turbine.
+    :return: The GMESH field representation of the turbine.
     :rtype: int
 
     """
 
-    curve = []
+    points = [(x, y + dRotor), (x, y - dRotor), (x + dRotor, y), (x - dRotor, y)]
 
-    m1 = gmsh.model.geo.addPoint(x + dWake / 2, y + shudder / 2, 0, lcTurbine)
-    m1p = gmsh.model.geo.addPoint(x + dWake / 2, y - shudder / 2, 0, lcTurbine)
-    m2 = gmsh.model.geo.addPoint(x, y + dRotor / 2, 0, lcTurbine)
-    m3 = gmsh.model.geo.addPoint(x - dWake / 2, y + shudder / 2, 0, lcTurbine)
-    m3p = gmsh.model.geo.addPoint(x - dWake / 2, y - shudder / 2, 0, lcTurbine)
-    m4 = gmsh.model.geo.addPoint(x, y - dRotor / 2, 0, lcTurbine)
+    for cords in points:
+        wf.updateXMax(cords[0])
+        wf.updateXMin(cords[0])
+        wf.updateYMax(cords[1])
+        wf.updateYMin(cords[1])
 
-    points = [(0, m1), (0, m1p), (0, m2), (0, m3), (0, m3p), (0, m4)]
+    c = gmsh.model.mesh.field.add("Cylinder")
 
-    gmsh.model.geo.rotate(points, x, y, 0, 0, 0, 1, inflow)
+    gmsh.model.mesh.field.setNumber(c, "Radius", dRotor)
+    gmsh.model.mesh.field.setNumber(c, "VIn", lcTurbine)
+    gmsh.model.mesh.field.setNumber(c, "VOut", lcBackground)
+    gmsh.model.mesh.field.setNumber(c, "ZAxis", 1)
+    gmsh.model.mesh.field.setNumber(c, "XCenter", x)
+    gmsh.model.mesh.field.setNumber(c, "YCenter", y)
 
-    gmsh.model.geo.synchronize()
-
-    for point in points:
-        coords = gmsh.model.getValue(0, point[1], [])
-        wf.updateXMax(coords[0])
-        wf.updateXMin(coords[0])
-        wf.updateYMax(coords[1])
-        wf.updateYMin(coords[1])
-
-    turbine = gmsh.model.geo.addPoint(x, y, 0, lcTurbine)
-
-    curve.append(gmsh.model.geo.addLine(m1p, m1))
-    curve.append(gmsh.model.geo.addLine(m1, m2))
-    curve.append(gmsh.model.geo.addLine(m2, m3))
-    curve.append(gmsh.model.geo.addLine(m3, m3p))
-    curve.append(gmsh.model.geo.addLine(m3p, m4))
-    curve.append(gmsh.model.geo.addLine(m4, m1p))
-
-    return gmsh.model.geo.addCurveLoop(curve, reorient=True)
+    return c
 
 def buildFarms2D(params, wf, domain):
 
@@ -84,11 +68,8 @@ def buildFarms2D(params, wf, domain):
 
     nFarms = params['refine']['turbine']['num_turbines']
     lcTurbine = params['refine']['turbine']['length_scale'] 
-    upstream = params['refine']['turbine']['threshold_upstream_distance']
-    downstream = params['refine']['turbine']['threshold_downstream_distance']
+    lcBackground = params['refine']['background_length_scale']
     rotor = params['refine']['turbine']['threshold_rotor_distance']
-    shudder = params['refine']['turbine']['shudder']
-    inflow = params['domain']['inflow_angle']
 
     for i in range(nFarms):
         turbineData = params['refine']['turbine'][i + 1]
@@ -98,9 +79,8 @@ def buildFarms2D(params, wf, domain):
         if not domain.withinDomain(x, y):
             raise Exception("Invalid turbine location.")
         
-        turbine = generateTurbine2D(x, y, lcTurbine, rotor, upstream + downstream, shudder, inflow, wf)
+        turbine = generateTurbine2D(x, y, lcTurbine, lcBackground, rotor, wf)
         turbines.append(turbine)
-        gmsh.model.geo.addPlaneSurface([turbine])
 
     return turbines
 
