@@ -80,7 +80,7 @@ def generate2DMesh(params):
     wf = WindFarm()
 
     farmBorder = buildTerrain2D(params, domain)
-    farm = gmsh.model.geo.addPlaneSurface([farmBorder])
+    farm = gmsh.model.geo.addPlaneSurface([farmBorder], tag=999)
 
     fields = [999]
     if params['refine']['farm']['type'] != 'none':
@@ -190,7 +190,7 @@ def setYAMLDefaults(params):
 
     refine.setdefault('global_scale', 1)
     refine.setdefault('turbine', {}).setdefault('num_turbines', 0)
-    refine.setdefault('turbine', {}).setdefault('shudder', params['refine']['turbine']['threshold_rotor_distance'])
+    refine.setdefault('turbine', {}).setdefault('type', 'rectangle')
 
     refine.setdefault('farm', {}).setdefault('length_scale', params['refine']['background_length_scale'])
     refine.setdefault('farm', {}).setdefault('threshold_distance', 0)
@@ -221,7 +221,7 @@ def verifyYAML(params):
     for key in turbineChecks:
         validNums = [i for i in range(1, turbineChecks['num_turbines'] + 1)]
         validParams = ['num_turbines', 'length_scale', 'threshold_upstream_distance', 'threshold_downstream_distance',
-                       'threshold_rotor_distance', 'shudder']
+                       'threshold_rotor_distance', 'type']
         if key in validNums:
             validSubkeys = ['x', 'y']
             for subkey in turbineChecks[key]:

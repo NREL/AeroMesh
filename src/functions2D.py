@@ -1,11 +1,12 @@
 import gmsh
 import numpy as np
+import math
 
 ####
 ## 2D Meshing Functions
 ####
 
-def generateTurbine2D(x, y, lcTurbine, lcBackground, dRotor, wf):
+def generateTurbine2DCircle(x, y, lcTurbine, lcBackground, dRotor, wf):
 
     """
     Builds a single turbine in 2D space at the target (x, y) pair. Additionally,
@@ -45,7 +46,50 @@ def generateTurbine2D(x, y, lcTurbine, lcBackground, dRotor, wf):
     gmsh.model.mesh.field.setNumber(c, "XCenter", x)
     gmsh.model.mesh.field.setNumber(c, "YCenter", y)
 
-    return c
+    return [c]
+
+def generateTurbine2DRect(x, y, lcTurbine, lcBackground, lcFarm, dRotor, upstream, downstream, inflow, wf, domain):
+    increment = dRotor / 2
+    downPoints = math.ceil(downstream / increment)
+    upPoints = math.ceil(upstream / increment)
+    turbine = [gmsh.model.geo.addPoint(x, y, 0)]
+
+    for i in range(1, downPoints + 1):
+        turbine.append(gmsh.model.geo.addPoint(x + increment * i, y, 0))
+   
+    for i in range(1, upPoints + 1):
+        turbine.append(gmsh.model.geo.addPoint(x - increment * i, y, 0))
+
+    turbineTags = list(tag for tag in zip([0] * len(turbine), turbine))
+    gmsh.model.geo.rotate(turbineTags, x, y, 0, 0, 0, 1, inflow)
+    gmsh.model.geo.synchronize() 
+
+    for point in turbine:
+        coords = gmsh.model.getValue(0, point, [])
+        if domain.withinDomain(coords[0], coords[1]):
+            wf.updateXMax(coords[0])
+            wf.updateXMin(coords[0])
+            wf.updateYMax(coords[1])
+            wf.updateYMin(coords[1])
+        else:
+            gmsh.model.geo.remove([(0, point)])
+            turbine.remove(point)
+
+    gmsh.model.geo.synchronize()
+    gmsh.model.mesh.embed(0, turbine, 2, 999)
+
+    f = gmsh.model.mesh.field.add("Distance")
+    gmsh.model.mesh.field.setNumbers(f, "PointsList", turbine)
+
+    t = gmsh.model.mesh.field.add("Threshold")
+    gmsh.model.mesh.field.setNumber(t, "InField", f)
+    gmsh.model.mesh.field.setNumber(t, "SizeMin", lcTurbine)
+    gmsh.model.mesh.field.setNumber(t, "SizeMax", lcBackground)
+    gmsh.model.mesh.field.setNumber(t, "DistMin", dRotor)
+    gmsh.model.mesh.field.setNumber(t, "DistMax", dRotor + 0.5 * (lcTurbine + lcFarm) * 4)
+
+    return [t]
+    
 
 def buildFarms2D(params, wf, domain):
 
@@ -69,7 +113,12 @@ def buildFarms2D(params, wf, domain):
     nFarms = params['refine']['turbine']['num_turbines']
     lcTurbine = params['refine']['turbine']['length_scale'] 
     lcBackground = params['refine']['background_length_scale']
+    lcFarm = params['refine']['farm']['length_scale']
     rotor = params['refine']['turbine']['threshold_rotor_distance']
+    turbineType = params['refine']['turbine']['type']
+    upstream = params['refine']['turbine']['threshold_upstream_distance']
+    downstream = params['refine']['turbine']['threshold_downstream_distance']
+    inflow = params['domain']['inflow_angle']
 
     for i in range(nFarms):
         turbineData = params['refine']['turbine'][i + 1]
@@ -78,9 +127,11 @@ def buildFarms2D(params, wf, domain):
 
         if not domain.withinDomain(x, y):
             raise Exception("Invalid turbine location.")
-        
-        turbine = generateTurbine2D(x, y, lcTurbine, lcBackground, rotor, wf)
-        turbines.append(turbine)
+        if turbineType == 'circle':
+            turbine = generateTurbine2DCircle(x, y, lcTurbine, lcBackground, rotor, wf)
+        elif turbineType == 'rectangle':
+            turbine = generateTurbine2DRect(x, y, lcTurbine, lcBackground, lcFarm, rotor, upstream, downstream, inflow, wf, domain)
+        turbines.extend(turbine)
 
     return turbines
 
