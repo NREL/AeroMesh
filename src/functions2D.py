@@ -154,6 +154,9 @@ def refineFarm2D(params, wf):
     blc = params['refine']['background_length_scale']
     ftype = params['refine']['farm']['type']
 
+    print(wf.x_range)
+    print(wf.y_range)
+
     wf.adjustDistance(dist)
 
     if ftype == 'box':

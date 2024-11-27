@@ -83,11 +83,11 @@ def generate2DMesh(params):
     farm = gmsh.model.geo.addPlaneSurface([farmBorder], tag=999)
 
     fields = [999]
+    fields.extend(buildFarms2D(params, wf, domain))
+    fields.extend(generateCustomRefines(params))
     if params['refine']['farm']['type'] != 'none':
         fields.append(998)
         refineFarm2D(params, wf)
-    fields.extend(buildFarms2D(params, wf, domain))
-    fields.extend(generateCustomRefines(params))
 
     mesher = gmsh.model.mesh.field.add("Min")
     gmsh.model.mesh.field.setNumbers(mesher, "FieldsList", fields)
