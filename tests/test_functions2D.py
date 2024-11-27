@@ -20,7 +20,9 @@ def test_turbinegen_full(domain):
     }
     params['refine'] = {
         'background_length_scale': 100,
-        'turbine': {},
+        'turbine': {
+            'type': 'circle'
+        },
         'farm': {}
     }
 
@@ -51,7 +53,7 @@ def test_turbinegen_full(domain):
     gmsh.model.remove()
 
     assert len(turbines) == 2
-    assert wf.x_range == [-1070, 470]
-    assert wf.y_range == [250, 450]
+    assert wf.x_range == [-900, 300]
+    assert wf.y_range == [200, 500]
 
     

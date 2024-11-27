@@ -67,8 +67,6 @@ def generate2DMesh(params):
     :type params: dict()
 
     """
-        
-    gmsh.initialize()
 
     gmsh.model.add("User Model")
 
@@ -77,27 +75,23 @@ def generate2DMesh(params):
     params['refine']['farm']['length_scale'] *= scale
     params['refine']['background_length_scale'] *= scale
 
-    farm = []
-
     domain = Domain()
 
     wf = WindFarm()
 
-    farm.append(buildTerrain2D(params, domain))
-    farm.extend(buildFarms2D(params, wf, domain))
-    gmsh.model.geo.addPlaneSurface(farm)
+    farmBorder = buildTerrain2D(params, domain)
+    farm = gmsh.model.geo.addPlaneSurface([farmBorder], tag=999)
 
     fields = [999]
+    fields.extend(buildFarms2D(params, wf, domain))
+    fields.extend(generateCustomRefines(params))
     if params['refine']['farm']['type'] != 'none':
         fields.append(998)
         refineFarm2D(params, wf)
-    fields.extend(generateCustomRefines(params))
 
     mesher = gmsh.model.mesh.field.add("Min")
     gmsh.model.mesh.field.setNumbers(mesher, "FieldsList", fields)
     gmsh.model.mesh.field.setAsBackgroundMesh(mesher)
-
-    gmsh.option.setNumber("Mesh.Algorithm", 8)
 
     gmsh.model.geo.synchronize()
 
@@ -113,18 +107,12 @@ def generate3DMesh(params):
 
     """
 
-    gmsh.initialize()
-
     gmsh.model.add("User Model")
 
     scale = params['refine']['global_scale']
     params['refine']['turbine']['length_scale'] *= scale
     params['refine']['farm']['length_scale'] *= scale
     params['refine']['background_length_scale'] *= scale
-
-    gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", 0)
-    gmsh.option.setNumber("Mesh.MeshSizeFromPoints", 0)
-    gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", 0)
 
     domain = Domain()
     try:
@@ -155,6 +143,8 @@ def generate3DMesh(params):
     anisotropyScale(params)
 
 def main():
+    gmsh.initialize()
+
     if len(sys.argv) < 2:
         raise Exception("Input file not specified.")
     filename = sys.argv[1]
@@ -163,6 +153,10 @@ def main():
 
     setYAMLDefaults(params)
     verifyYAML(params)
+
+    gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", 0)
+    gmsh.option.setNumber("Mesh.MeshSizeFromPoints", 0)
+    gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", 0)
 
     params['domain']['inflow_angle'] *= math.pi / 180
 
@@ -196,7 +190,7 @@ def setYAMLDefaults(params):
 
     refine.setdefault('global_scale', 1)
     refine.setdefault('turbine', {}).setdefault('num_turbines', 0)
-    refine.setdefault('turbine', {}).setdefault('shudder', params['refine']['turbine']['threshold_rotor_distance'])
+    refine.setdefault('turbine', {}).setdefault('type', 'rectangle')
 
     refine.setdefault('farm', {}).setdefault('length_scale', params['refine']['background_length_scale'])
     refine.setdefault('farm', {}).setdefault('threshold_distance', 0)
@@ -227,7 +221,7 @@ def verifyYAML(params):
     for key in turbineChecks:
         validNums = [i for i in range(1, turbineChecks['num_turbines'] + 1)]
         validParams = ['num_turbines', 'length_scale', 'threshold_upstream_distance', 'threshold_downstream_distance',
-                       'threshold_rotor_distance', 'shudder']
+                       'threshold_rotor_distance', 'type']
         if key in validNums:
             validSubkeys = ['x', 'y']
             for subkey in turbineChecks[key]:

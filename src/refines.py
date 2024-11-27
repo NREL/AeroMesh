@@ -11,13 +11,13 @@ def generateCustomRefines(params):
         if shape == 'box':
             x = params['refine_custom'][i]['x_range']
             y = params['refine_custom'][i]['y_range']
-            z = 0 if dim == 2 else params['refine_custom'][i]['height']
+            z = 1 if dim == 2 else params['refine_custom'][i]['height']
             lc = params['refine_custom'][i]['length_scale']
             fields.append(_customBox(x, y, z, lc, blc))
         elif shape == 'cylinder':
             x = params['refine_custom'][i]['x_range']
             y = params['refine_custom'][i]['y_range']
-            height = 0 if dim == 2 else params['refine_custom'][i]['height']
+            height = 1 if dim == 2 else params['refine_custom'][i]['height']
             lc = params['refine_custom'][i]['length_scale']
             radius = params['refine_custom'][i]['radius']
             fields.append(_customCylinder(x, y, radius, height, lc, blc))

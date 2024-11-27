@@ -248,10 +248,10 @@ def buildTerrain2D(params, domain):
     
     domain.setDomain(x_range, y_range, 0)
 
-    b1 = gmsh.model.geo.addPoint(x_range[1], y_range[0], 0, lc)
-    b2 = gmsh.model.geo.addPoint(x_range[0], y_range[0], 0, lc)
-    b3 = gmsh.model.geo.addPoint(x_range[1], y_range[1], 0, lc)
-    b4 = gmsh.model.geo.addPoint(x_range[0], y_range[1], 0, lc)
+    b1 = gmsh.model.geo.addPoint(x_range[1], y_range[0], 0)
+    b2 = gmsh.model.geo.addPoint(x_range[0], y_range[0], 0)
+    b3 = gmsh.model.geo.addPoint(x_range[1], y_range[1], 0)
+    b4 = gmsh.model.geo.addPoint(x_range[0], y_range[1], 0)
 
     lb1 = gmsh.model.geo.addLine(b1, b3, tag=994) #XMax
     lb2 = gmsh.model.geo.addLine(b3, b4, tag=993) #YMax
