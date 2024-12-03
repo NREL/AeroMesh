@@ -67,7 +67,6 @@ def generate2DMesh(params):
     :type params: dict()
 
     """
-
     gmsh.model.add("User Model")
 
     scale = params['refine']['global_scale']
