@@ -26,6 +26,7 @@ def buildTerrainFromFile(params, domain):
     y_range = params['domain']['y_range']
     height = params['domain']['height']
     aspect = params['domain']['aspect_ratio']
+    upper_aspect = params['domain']['upper_aspect_ratio']
     aniso_dist = params['domain']['aspect_distance']
     lc = params['refine']['background_length_scale']
 
@@ -41,6 +42,8 @@ def buildTerrainFromFile(params, domain):
     xMax = x_range[1]
     yMin = y_range[0]
     yMax = y_range[1]
+    lowerHeight = aniso_dist * aspect
+    upperHeight = (height - aniso_dist) * upper_aspect
     totalHeight = aniso_dist * aspect + (height - aniso_dist)
 
     b = gmsh.model.mesh.field.add("Box", tag=999)
@@ -162,6 +165,7 @@ def buildTerrainDefault(params, domain):
     y_range = params['domain']['y_range']
     height = params['domain']['height']
     aspect = params['domain']['aspect_ratio']
+    upper_aspect = params['domain']['upper_aspect_ratio']
     aniso_dist = params['domain']['aspect_distance']
     lc = params['refine']['background_length_scale']
 
