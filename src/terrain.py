@@ -42,9 +42,10 @@ def buildTerrainFromFile(params, domain):
     xMax = x_range[1]
     yMin = y_range[0]
     yMax = y_range[1]
+
     lowerHeight = aniso_dist * aspect
     upperHeight = (height - aniso_dist) * upper_aspect
-    totalHeight = aniso_dist * aspect + (height - aniso_dist)
+    totalHeight = lowerHeight + upperHeight
 
     b = gmsh.model.mesh.field.add("Box", tag=999)
     gmsh.model.mesh.field.setNumber(b, "XMin", xMin)
@@ -173,7 +174,10 @@ def buildTerrainDefault(params, domain):
     xMax = x_range[1]
     yMin = y_range[0]
     yMax = y_range[1]
-    totalHeight = aniso_dist * aspect + (height - aniso_dist)
+    
+    lowerHeight = aniso_dist * aspect
+    upperHeight = (height - aniso_dist) * upper_aspect
+    totalHeight = lowerHeight + upperHeight
     
     b = gmsh.model.mesh.field.add("Box", tag=999)
     gmsh.model.mesh.field.setNumber(b, "XMin", xMin)
