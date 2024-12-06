@@ -235,9 +235,11 @@ def anisotropyScale(params):
         if coord[2] <= dist * aspect:
             coord[2] /= aspect
         else:
-            coord[2] -= (dist * (aspect - 1))
-            if upper_aspect < 1:
-                coord[2] = coord[2] + ((height - dist) * (1 - upper_aspect))
+            coord[2] -= (dist * (aspect))
+            coord[2] /= ((height - dist) * upper_aspect)
+            coord[2] *= (height - dist)
+            coord[2] += dist
+
         gmsh.model.mesh.setNode(tag, coord, [])
 
 def calcEllipse(a, b, z):
