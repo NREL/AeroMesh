@@ -184,6 +184,7 @@ def setYAMLDefaults(params):
     params.setdefault('refine_custom', {}).setdefault('num_refines', 0)
 
     domain.setdefault('aspect_ratio', 1)
+    domain.setdefault('upper_aspect_ratio', 1)
     domain.setdefault('aspect_distance', 0)
     domain.setdefault('inflow_angle', 0)
 
@@ -207,7 +208,8 @@ def verifyYAML(params):
     refineChecks = params['refine']
     customChecks = params['refine_custom']
     for key in domainChecks:
-        valid = ['terrain_path', 'x_range', 'y_range', 'height', 'aspect_ratio', 'aspect_distance', 'dimension', 'inflow_angle']
+        valid = ['terrain_path', 'x_range', 'y_range', 'height', 'aspect_ratio', 'upper_aspect_ratio',
+                 'aspect_distance', 'dimension', 'inflow_angle']
         if key not in valid:
             print("Unknown field: " + key)
             err = 1
