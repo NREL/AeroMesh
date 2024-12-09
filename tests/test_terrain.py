@@ -13,6 +13,7 @@ def test_terrain3D():
         'y_range': [-1200, 1200],
         'height': 1000,
         'aspect_ratio': 1,
+        'upper_aspect_ratio': 1,
         'aspect_distance': 0
     }
 
@@ -39,6 +40,7 @@ def test_terrain3D_default():
         'y_range': [-1200, 1200],
         'height': 1000,
         'aspect_ratio': 1,
+        'upper_aspect_ratio': 1,
         'aspect_distance': 0
     }
 

@@ -21,6 +21,7 @@ def params():
         'y_range': [-1200, 1200],
         'height': 1000,
         'aspect_ratio': 1,
+        'upper_aspect_ratio': 1,
         'aspect_distance': 0,
         'inflow_angle': 0
     }
