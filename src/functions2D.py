@@ -116,8 +116,6 @@ def buildFarms2D(params, wf, domain):
     lcFarm = params['refine']['farm']['length_scale']
     rotor = params['refine']['turbine']['threshold_rotor_distance']
     turbineType = params['refine']['turbine']['type']
-    upstream = params['refine']['turbine']['threshold_upstream_distance']
-    downstream = params['refine']['turbine']['threshold_downstream_distance']
     inflow = params['domain']['inflow_angle']
 
     for i in range(nFarms):
@@ -130,6 +128,8 @@ def buildFarms2D(params, wf, domain):
         if turbineType == 'circle':
             turbine = generateTurbine2DCircle(x, y, lcTurbine, lcBackground, rotor, wf)
         elif turbineType == 'rectangle':
+            upstream = params['refine']['turbine']['threshold_upstream_distance']
+            downstream = params['refine']['turbine']['threshold_downstream_distance']
             turbine = generateTurbine2DRect(x, y, lcTurbine, lcBackground, lcFarm, rotor, upstream, downstream, inflow, wf, domain)
         turbines.extend(turbine)
 
