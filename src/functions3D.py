@@ -112,14 +112,22 @@ def placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, asp
     # These loops add the points needed to maintain the proper aspect ratio.
     ###
     for i in range(1, math.floor(aspect + 1)):
-        level = [gmsh.model.geo.addPoint(x, y, z + (rotor * i)), gmsh.model.geo.addPoint(x, y, z - (rotor * i))]
+        level = []
+        if z + (rotor * i) < domain.height: 
+            gmsh.model.geo.addPoint(x, y, z + (rotor * i))
+        if z - (rotor * i) > domain.calculateGround(x, y):
+            gmsh.model.geo.addPoint(x, y, z - (rotor * i))
         for j in range(1, downPoints + 1):
-            level.append(gmsh.model.geo.addPoint(x + increment * j, y, z + (rotor * i)))
-            level.append(gmsh.model.geo.addPoint(x + increment * j, y, z - (rotor * i)))
+            if z + (rotor * i) < domain.height: 
+                level.append(gmsh.model.geo.addPoint(x + increment * j, y, z + (rotor * i)))
+            if z - (rotor * i) > domain.calculateGround(x + increment * j, y):
+                level.append(gmsh.model.geo.addPoint(x + increment * j, y, z - (rotor * i)))
 
         for j in range(1, upPoints + 1):
-            level.append(gmsh.model.geo.addPoint(x - increment * j, y, z + (rotor * i)))
-            level.append(gmsh.model.geo.addPoint(x - increment * j, y, z - (rotor * i)))
+            if z + (rotor * i) < domain.height: 
+                level.append(gmsh.model.geo.addPoint(x - increment * j, y, z + (rotor * i)))
+            if z - (rotor * i) > domain.calculateGround(x - increment * j, y):
+                level.append(gmsh.model.geo.addPoint(x - increment * j, y, z - (rotor * i)))
         
         anisoPoints.append(level)
 

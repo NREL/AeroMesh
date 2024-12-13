@@ -17,6 +17,11 @@ class Domain():
     def setInterp(self, interp):
         self.interp = interp
 
+    def calculateGround(self, x, y):
+        if self.interp:
+            return self.interp(x, y)
+        return 0
+
     def withinDomain(self, x, y, z=0):
         if x < self.x_range[0] or x > self.x_range[1]:
             return False
