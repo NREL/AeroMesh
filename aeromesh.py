@@ -224,7 +224,7 @@ def verifyYAML(params):
         validParams = ['num_turbines', 'length_scale', 'threshold_upstream_distance', 'threshold_downstream_distance',
                        'threshold_rotor_distance', 'type']
         if key in validNums:
-            validSubkeys = ['x', 'y']
+            validSubkeys = ['x', 'y', 'HH']
             for subkey in turbineChecks[key]:
                 if subkey not in validSubkeys:
                     print("Unknown field: " + str(key))
@@ -237,7 +237,7 @@ def verifyYAML(params):
         if key == 'num_refines':
             continue
         elif key in validNums:
-            validSubkeys = ['type', 'x_range', 'y_range', 'radius', 'length_scale', 'height']
+            validSubkeys = ['type', 'x_range', 'y_range', 'radius', 'length_scale', 'z_range']
             for subkey in customChecks[key]:
                 if subkey not in validSubkeys:
                     print("Unknown refine_custom[" + str(key) + "] field: " + str(subkey))

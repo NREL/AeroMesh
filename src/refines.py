@@ -13,7 +13,7 @@ def generateCustomRefines(params):
         shape = params['refine_custom'][i]['type']
         x = params['refine_custom'][i]['x_range']
         y = params['refine_custom'][i]['y_range']
-        z = 1 if dim == 2 else _getAdjustedHeight(lower_aspect, upper_aspect, threshold, params['refine_custom'][i]['height'])
+        z = [0, 1] if dim == 2 else _getAdjustedHeight(lower_aspect, upper_aspect, threshold, params['refine_custom'][i]['z_range'])
         lc = params['refine_custom'][i]['length_scale']
         if shape == 'box':
             fields.append(_customBox(x, y, z, lc, blc))
@@ -23,12 +23,15 @@ def generateCustomRefines(params):
             
     return fields
 
-def _getAdjustedHeight(lower_aspect, upper_aspect, threshold, height):
-    height_upper = height - threshold
-    height_lower = height - height_upper
-    if height_upper <= 0:
-        return lower_aspect * height
-    return (height_lower * lower_aspect) + (height_upper * upper_aspect)
+def _getAdjustedHeight(lower_aspect, upper_aspect, threshold, z_range):
+    bottom, top = z_range[0], z_range[1]
+    if bottom > threshold:
+        return [bottom * upper_aspect, top * upper_aspect]
+    
+    if top <= threshold:
+        return [bottom * lower_aspect, top * lower_aspect]
+    
+    return  [bottom * lower_aspect, top * upper_aspect]
 
 def _customBox(x, y, z, lc, blc):
     b = gmsh.model.mesh.field.add("Box")
@@ -36,8 +39,8 @@ def _customBox(x, y, z, lc, blc):
     gmsh.model.mesh.field.setNumber(b, "XMax", x[1])
     gmsh.model.mesh.field.setNumber(b, "YMin", y[0])
     gmsh.model.mesh.field.setNumber(b, "YMax", y[1])
-    gmsh.model.mesh.field.setNumber(b, "ZMin", 0)
-    gmsh.model.mesh.field.setNumber(b, "ZMax", z)
+    gmsh.model.mesh.field.setNumber(b, "ZMin", z[0])
+    gmsh.model.mesh.field.setNumber(b, "ZMax", z[1])
     gmsh.model.mesh.field.setNumber(b, "VIn", lc)
     gmsh.model.mesh.field.setNumber(b, "VOut", blc)
 

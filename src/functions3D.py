@@ -35,11 +35,14 @@ def generateTurbines(params, domain, wf):
     for i in range(nFarms):
         turbineData = params['refine']['turbine'][i + 1]
         x = turbineData['x'] 
-        y = turbineData['y'] 
+        y = turbineData['y']
+        hh = 100
+        if turbineData.get('HH') is not None:
+            hh = turbineData.get('HH')
         if interp is not None:
-            z = (interp(x, y) + 100) * aspect
+            z = (interp(x, y) + hh) * aspect
         else:
-            z = 100 * aspect
+            z = hh * aspect
 
         if not domain.withinDomain(x, y, z):
             raise Exception("Invalid turbine location.")
