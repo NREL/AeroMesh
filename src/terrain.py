@@ -234,6 +234,27 @@ def buildTerrainDefault(params, domain):
 
     return gmsh.model.geo.addSurfaceLoop([base, f1, f2, f3, f4, top])
 
+def buildTerrainCylinder(params, domain):
+    centerLocation = params['domain']['center']
+    radius = params['domain']['radius']
+
+    center = gmsh.model.geo.addPoint(centerLocation[0], centerLocation[1], 0)
+    posX = gmsh.model.geo.addPoint(centerLocation[0] + radius, centerLocation[1], 0)
+    negX = gmsh.model.geo.addPoint(centerLocation[0] - radius, centerLocation[1], 0)
+    posY = gmsh.model.geo.addPoint(centerLocation[0], centerLocation[1] + radius, 0)
+    negY = gmsh.model.geo.addPoint(centerLocation[0], centerLocation[1] - radius, 0)
+
+    a1 = gmsh.model.geo.addCircleArc(posX, center, negY)
+    a2 = gmsh.model.geo.addCircleArc(negY, center, negX)
+    a3 = gmsh.model.geo.addCircleArc(negX, center, posY)
+    a4 = gmsh.model.geo.addCircleArc(posY, center, posX)
+
+    loop = gmsh.model.geo.addCurveLoop([a1, a2, a3, a4])
+    surface = gmsh.model.geo.addPlaneSurface([loop])
+
+    return surface
+
+
 def buildTerrain2D(params, domain):
 
     """
