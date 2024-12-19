@@ -277,7 +277,7 @@ def calcEllipse(a, b, z):
 def refineFarm3D(params, wf):
 
     """
-    Initializes a 'Box' field that sets points within the minimum bounding regoin
+    Initializes a 'Box' or 'Cylinder' field that sets points within the minimum bounding regoin
     surrounding the farm to the farm's meshing constraint.
 
     :param params: The parameter dictionary.
