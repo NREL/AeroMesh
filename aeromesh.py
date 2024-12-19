@@ -128,10 +128,7 @@ def generate3DMesh(params):
         raise Exception("Invalid farm type specified. Farm types must be in [box, cylinder].")
 
     if farmType == 'box':
-        v1 = gmsh.model.geo.addVolume([terrain], tag=999)
-    elif farmType == 'cylinder':
-        gmsh.model.geo.synchronize()
-        gmsh.model.setTag(3, 1, 999)
+        v1 = gmsh.model.geo.addVolume([terrain], tag=1)
         
     wf = WindFarm()
     fields = generateTurbines(params, domain, wf)

@@ -40,7 +40,7 @@ def test_turbinegen_isolated(domain, params):
     gmsh.model.add("3D Turbine Generation Test")
     
     sl = buildTerrainDefault(params, domain)
-    gmsh.model.geo.addVolume([sl], tag=999)
+    gmsh.model.geo.addVolume([sl], tag=1)
 
     wf = WindFarm()
 
@@ -61,7 +61,7 @@ def test_turbinegen_full(domain, params):
     wf = WindFarm()
 
     sl = buildTerrainDefault(params, domain)
-    gmsh.model.geo.addVolume([sl], tag=999)
+    gmsh.model.geo.addVolume([sl], tag=1)
 
     params['refine']['turbine']['num_turbines'] = 2
     params['refine']['turbine']['length_scale'] = 30
@@ -98,7 +98,7 @@ def test_anisotropy(domain, params):
     params['domain']['aspect_distance'] = 400
 
     sl = buildTerrainDefault(params, domain)
-    gmsh.model.geo.addVolume([sl], tag=999)
+    gmsh.model.geo.addVolume([sl], tag=1)
 
     anisotropyScale(params)
 

@@ -57,7 +57,7 @@ def buildTerrainFromFile(params, domain):
     gmsh.model.mesh.field.setNumber(b, "VIn", lc)
     gmsh.model.mesh.field.setNumber(b, "VOut", lc * 2)
 
-    domain.setDomain([xMin, xMax], [yMin, yMax], totalHeight)
+    domain.setDomain(x_range=[xMin, xMax], y_range=[yMin, yMax], height=totalHeight)
 
     interp = LinearNDInterpolator(list(zip(xTerrain, yTerrain)), heightTerrain)
     xPoints = np.linspace(xMin, xMax, num=N + 1)
@@ -189,7 +189,7 @@ def buildTerrainDefault(params, domain):
     gmsh.model.mesh.field.setNumber(b, "VIn", lc)
     gmsh.model.mesh.field.setNumber(b, "VOut", lc * 2)
 
-    domain.setDomain([xMin, xMax], [yMin, yMax], totalHeight)
+    domain.setDomain(x_range=[xMin, xMax], y_range=[yMin, yMax], height=totalHeight)
 
     b1 = gmsh.model.geo.addPoint(xMax, yMin, 0)
     b2 = gmsh.model.geo.addPoint(xMin, yMin, 0)
@@ -248,6 +248,8 @@ def buildTerrainCylinder(params, domain):
     upperHeight = (height - aspect_distance) * upper_aspect
     totalHeight = lowerHeight + upperHeight
 
+    domain.setDomain(radius=radius, center=centerLocation, height=totalHeight)
+
     if filename:
         terrain = np.loadtxt(filename)
 
@@ -283,7 +285,6 @@ def buildTerrainCylinder(params, domain):
     height = params['domain']['height']
     v1 = gmsh.model.geo.extrude([(2, surface)], 0, 0, totalHeight)
 
-
 def buildTerrain2D(params, domain):
 
     """
@@ -304,7 +305,7 @@ def buildTerrain2D(params, domain):
     y_range = params['domain']['y_range']
     lc = params['refine']['background_length_scale']
     
-    domain.setDomain(x_range, y_range, 0)
+    domain.setDomain(x_range=x_range, y_range=y_range, height=0)
 
     b1 = gmsh.model.geo.addPoint(x_range[1], y_range[0], 0)
     b2 = gmsh.model.geo.addPoint(x_range[0], y_range[0], 0)

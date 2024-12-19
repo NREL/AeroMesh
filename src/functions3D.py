@@ -97,7 +97,6 @@ def placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, asp
     turbine = [gmsh.model.geo.addPoint(x, y, z)]
     anisoPoints = []
 
-
     ###
     # These loops build the body of the turbine.
     ###
@@ -107,7 +106,7 @@ def placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, asp
     for i in range(1, upPoints + 1):
         turbine.append(gmsh.model.geo.addPoint(x - increment * i, y, z))
     
-
+    
     if aspect == 1:
         aspect = 0 # Locally turns off anisotropy loops.
 
@@ -140,7 +139,6 @@ def placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, asp
 
     turbineTags = list(tag for tag in zip([0] * len(turbine), turbine))
     gmsh.model.geo.rotate(turbineTags, x, y, z, 0, 0, 1, inflow)
-
     gmsh.model.geo.synchronize()
 
     for point in turbine:
@@ -154,9 +152,8 @@ def placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, asp
         else:
             gmsh.model.geo.remove([(0, point)])
             turbine.remove(point)
-
     gmsh.model.geo.synchronize()
-    gmsh.model.mesh.embed(0, turbine, 3, 999)
+    gmsh.model.mesh.embed(0, turbine, 3, 1)
 
     for level in anisoPoints:
         levelTags = list(tag for tag in zip([0] * len(level), level))
@@ -177,7 +174,7 @@ def placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, asp
                 level.remove(point)
 
         gmsh.model.geo.synchronize()
-        gmsh.model.mesh.embed(0, level, 3, 999)
+        gmsh.model.mesh.embed(0, level, 3, 1)
 
     gmsh.model.geo.synchronize()
 

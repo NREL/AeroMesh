@@ -4,15 +4,19 @@
 
 class Domain():
     def __init__(self):
-        self.x_range = []
-        self.y_range = []
+        self.x_range = None
+        self.y_range = None
         self.height = 0
         self.interp = None
+        self.radius = None
+        self.center = None
 
-    def setDomain(self, x_range, y_range, height):
+    def setDomain(self, x_range=None, y_range=None, height=0, radius=None, center=None):
         self.x_range = x_range
         self.y_range = y_range
         self.height = height
+        self.radius = radius
+        self.center = center
 
     def setInterp(self, interp):
         self.interp = interp
@@ -23,15 +27,27 @@ class Domain():
         return 0
 
     def withinDomain(self, x, y, z=0):
-        if x < self.x_range[0] or x > self.x_range[1]:
-            return False
-        if y < self.y_range[0] or y > self.y_range[1]:
-            return False
-        if z > self.height or z < 0:
-            return False
-        if self.interp and z < self.interp(x, y):
-            return False
-        return True
+        if self.x_range and self.y_range:
+            if x < self.x_range[0] or x > self.x_range[1]:
+                return False
+            if y < self.y_range[0] or y > self.y_range[1]:
+                return False
+            if z > self.height or z < 0:
+                return False
+            if self.interp and z < self.interp(x, y):
+                return False
+            return True
+        elif self.radius and self.center:
+            inCircle = lambda x, y, h, k, r: (x - h) ** 2 + (y - k) ** 2 <= r ** 2
+            if not inCircle(x, y, self.center[0], self.center[1], self.radius):
+                return False
+            if z > self.height or z < 0:
+                return False
+            if self.interp and z < self.interp(x, y):
+                return False
+            return True
+        else:
+            raise Exception("Improperly defined domain.")
 
 class WindFarm():
     def __init__(self):
