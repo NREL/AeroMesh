@@ -94,6 +94,9 @@ def generate2DMesh(params):
 
     gmsh.model.geo.synchronize()
 
+    gmsh.model.mesh.removeDuplicateNodes()
+    gmsh.model.mesh.removeDuplicateElements()
+
     gmsh.model.mesh.generate(2)
 
 def generate3DMesh(params):
@@ -151,18 +154,7 @@ def generate3DMesh(params):
     anisotropyScale(params)
 
     if farmType == 'cylinder' and domain.interp:
-        nodes = gmsh.model.mesh.getNodes(2, 999)
-        tags = nodes[0]
-        coords = nodes[1].reshape(-1, 3)
-        for tag, coord in zip(tags, coords):
-            x, y = coord[0], coord[1]
-            coord[2] = domain.interp(x, y)
-
-            gmsh.model.mesh.setNode(tag, coord, [])
-
-        gmsh.model.geo.synchronize()
-        gmsh.model.mesh.removeDuplicateElements()
-        gmsh.model.mesh.removeDuplicateNodes()
+        cylinderTerrainAdjustment(domain, params)
 
 def main():
     gmsh.initialize()
