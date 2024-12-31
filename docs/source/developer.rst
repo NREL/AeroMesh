@@ -14,8 +14,6 @@ These functions, found in ``src/functions3D.py``, serve as the backend for the 3
     
 .. autofunction:: src.functions3D.placeTurbine
 
-.. autofunction:: src.functions3D.checkBounds
-
 .. autofunction:: src.functions3D.anisotropyScale
 
 .. autofunction:: src.functions3D.calcEllipse
@@ -26,8 +24,6 @@ These functions, found in ``src/functions3D.py``, serve as the backend for the 3
 -----------------------------------
 
 These functions, found in ``src/functions2D.py``, serve as the backend for the 2D meshing protocols.
-
-.. autofunction:: src.functions2D.generateTurbine2D
 
 .. autofunction:: src.functions2D.buildFarms2D
 
