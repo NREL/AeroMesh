@@ -77,13 +77,14 @@ The YAML structure below details all possible parameters, their expected data ty
 Parameter Descriptions
 -----------------------------
 
-The schema above contains a combination of 3D, 2D, and general parameters.
-Additionally, some of these parameters are optional. The tables below will provide further
-details on the parameters and their functions.
+The schema above contains domain and refinement parameters. The following sections will describe
+the domain and refinement customizability offered by AeroMesh, as well as some different options
+offered in 3D and 2D meshes that can provide additional flexibility.
 
-2D and 3D Parameters
+Domain Parameters
 ~~~~~~~~~~~~~~~~~~~~~~
-The following list details the parameters used across all meshing procedures. If the parameters are not optional, they can never be safely omitted.
+This section details the parameters that define the domain for both 2D and 3D simulations.
+These parameters are not optional and must be included in every meshing procedure.
 
 .. list-table::
     :header-rows: 1
@@ -91,9 +92,6 @@ The following list details the parameters used across all meshing procedures. If
     * - Parameter
       - Description
       - Optional
-    * - filetype
-      - The file type of the GMESH output. By default, the output will be a .msh file.
-      - Yes.
     * - type
       - Box by default. Can be set to cylinder for a cylindrical outer domain (or a circle in 2D).
       - Yes.
@@ -106,35 +104,32 @@ The following list details the parameters used across all meshing procedures. If
     * - dimension
       - The dimension of the mesh. 2 for 2D meshes, 3 for 3D meshes.
       - No.
-    * - global_scale
-      - A scaling factor applied uniformly to all length scales. 1 by default, to create no effect.
-      - Yes.
-    * - threshold_upstream_distance
-      - The extent to which the turbine meshes should extend in the negative wake direction.
-      - No.
-    * - threshold_downstream_distance
-      - The extent to which the turbine meshes should extend in the positive wake direction.
-      - No.
-    * - threshold_rotor_distance
-      - The radius formed by a rotation of the turbine's rotor.
-      - No.
-    * - background_length_scale
-      - The length scale of the meshing across the entire domain.
-      - No.
-    * - length_scale (turbine)
-      - The length scale of the meshing near the turbines.
-      - No.
-    * - num_turbines
-      - The expected number of turbines.
-      - No.
     * - inflow_angle
       - If there is one incoming wind vector, this flag will orient the turbines to face the wind. Input the angle in degrees.
       - Yes.
 
+Refinement Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+There are a few parameters that apply globally across refinements. This section details them.
+
+.. list-table::
+    :header-rows: 1
+
+    * - Parameter
+      - Description
+      - Optional
+    * - global_scale
+      - A scaling factor applied uniformly to all length scales. 1 by default, to create no effect.
+      - Yes.
+    * - background_length_scale
+      - The length scale of the meshing across the entire domain.
+      - No.
+
 Creating Turbines
 ~~~~~~~~~~~~~~~~~~~~~~
 
-As discussed above, the number of turbines must be specified using the appropriate field.
+The number of turbines must be specified using the appropriate (num_turbines) field.
 For each turbine, create a numerical field and populate it with the three relevant turbine parameters.
 Examples are shown :ref:`here <yaml_params>`, under the turbine header. The table below describes the three
 turbine parameters.
@@ -154,6 +149,34 @@ turbine parameters.
     * - HH
       - The turbine's hub height. This parameter determines how high off the terrain the turbine center is placed. Set to 100 by default.
       - Yes.
+
+Creating Turbines
+~~~~~~~~~~~~~~~~~~~~~~
+
+In addition to defining the location of the farm's turbines, AeroMesh provides additional global customizability
+that applies to every turbine in the mesh. These options are described below.
+
+.. list-table::
+    :header-rows: 1
+
+    * - Parameter
+      - Description
+      - Optional
+    * - num_turbines
+      - The expected number of turbines.
+      - No.
+    * - length_scale (turbine)
+      - The length scale of the meshing near the turbines.
+      - No.
+    * - threshold_upstream_distance
+      - The extent to which the turbine meshes should extend in the negative wake direction.
+      - No.
+    * - threshold_downstream_distance
+      - The extent to which the turbine meshes should extend in the positive wake direction.
+      - No.
+    * - threshold_rotor_distance
+      - The radius formed by a rotation of the turbine's rotor.
+      - No.
 
 Creating Farm Refinements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -212,10 +235,11 @@ sub-parameters.
       - No.
 
 
-3D Parameters Only
-~~~~~~~~~~~~~~~~~~~~~~
-The following list details the parameters used only in 3D simulations. If the simulation is in 2D,
-these parameters can be safely omitted.
+3D Domain Customizability
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+3D meshes have some additional domain-level parameters not available in 2 dimensions. 
+These parameters are described below.
 
 .. list-table::
     :header-rows: 1
@@ -240,8 +264,8 @@ these parameters can be safely omitted.
       - Yes.
 
 
-2D Parameters Only
-~~~~~~~~~~~~~~~~~~~~~~
+2D Turbine Customizability
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In 2D meshes, the type of refinement that defines the turbine may be specified. This customizability is done using the
 refine[turbine][type] flag. The table below describes the flag.
