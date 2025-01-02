@@ -9,7 +9,7 @@ import math
 def generateTurbine2DCircle(x, y, lcTurbine, lcBackground, dRotor, wf):
 
     """
-    Builds a single turbine in 2D space at the target (x, y) pair. Additionally,
+    Builds a single (circular) turbine in 2D space at the target (x, y) pair. Additionally,
     updates the minimum bounding region representing the farm if necessary.
 
     :param x: The x coordinate of the turbine center.
@@ -49,6 +49,35 @@ def generateTurbine2DCircle(x, y, lcTurbine, lcBackground, dRotor, wf):
     return [c]
 
 def generateTurbine2DRect(x, y, lcTurbine, lcBackground, lcFarm, dRotor, upstream, downstream, inflow, wf, domain):
+    """
+    Builds a single (circular) turbine in 2D space at the target (x, y) pair. Additionally,
+    updates the minimum bounding region representing the farm if necessary.
+
+    :param x: The x coordinate of the turbine center.
+    :type x: double
+    :param y: The y coordinate of the turbine center.
+    :type y: double
+    :param lcTurbine: The meshing constraint at the turbine.
+    :type lcTurbine: double
+    :param lcBackground: The meshing constraint at the background.
+    :type lcTurbine: double
+    :param dRotor: The rotor distance.
+    :type dRotor: double
+    :param upstream: The extension of the wind farm towards the wind vector.
+    :type upstream: double
+    :param downstream: The extension of the wind farm against the wind vector.
+    :type downstream: double
+    :param inflow: The direction of the incoming wind vector.
+    :type inflow: double
+    :param wf: The structure defining the wind farm.
+    :type wf: WindFarm
+    :param domain: The structure defining the domain of the meshing.
+    :type domain: Domain
+    :return: The GMESH field representation of the turbine.
+    :rtype: int
+
+    """
+
     increment = dRotor / 2
     downPoints = math.ceil(downstream / increment)
     upPoints = math.ceil(upstream / increment)
