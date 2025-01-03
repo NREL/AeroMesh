@@ -76,10 +76,12 @@ def placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, asp
     :type lcb: double
     :param lcf: The farm level meshing restriction.
     :type lcf: double
-    :param wake: The direction of the wake.
-    :type wake: int
+    :param inflow: The incoming wind direction.
+    :type inflow: double
     :param aspect: The aspect ratio.
     :type aspect: int
+    :param wf: The structure representing the wind farm.
+    :type wf: WindFfarm
     :param domain: The structure representing the domain.
     :type domain: Domain
     :return: A list of GMESH fields that define the rotor's meshing region plus any anisotropic meshing in the z-direction.

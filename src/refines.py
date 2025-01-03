@@ -1,6 +1,16 @@
 import gmsh
 
 def generateCustomRefines(params):
+    """
+    Generates all the custom refinements specified and returns them as a list of field
+    IDs.
+
+    :param params: The parameter dictionary.
+    :type params: dict()
+    :return: A list of the fields representing the custom refinements.
+    :rtype: list[int]
+
+    """
     n_refines = params['refine_custom']['num_refines']
     dim = params['domain']['dimension']
     blc = params['refine']['background_length_scale']
@@ -24,6 +34,22 @@ def generateCustomRefines(params):
     return fields
 
 def _getAdjustedHeight(lower_aspect, upper_aspect, threshold, z_range):
+    """
+    Adjusts the lower and upper z-values of a custom refinement in order to account
+    for changes caused by the upper or lower aspect ratios.
+
+    :param lower_aspect: The aspect ratio below the threshold distance.
+    :type params: double
+    :param upper_aspect: The aspect ratio above the threshold distance.
+    :type upper_aspect: double
+    :param threshold: The threshold that defines the upper and lower aspect split.
+    :type threshold: double
+    :param z_range: The original, unadjusted z-range of the refinement.
+    :type z_range: list[double, double]
+    :return: The adjusted heights, in a list.
+    :rtype: list[double, double]
+
+    """
     bottom, top = z_range[0], z_range[1]
     if bottom > threshold:
         return [bottom * upper_aspect, top * upper_aspect]
@@ -34,6 +60,23 @@ def _getAdjustedHeight(lower_aspect, upper_aspect, threshold, z_range):
     return  [bottom * lower_aspect, top * upper_aspect]
 
 def _customBox(x, y, z, lc, blc):
+    """
+    Generates a field to represent a single box refinement.
+
+    :param x: The x-range.
+    :type x: list[double, double]
+    :param y: The y-range.
+    :type y: list[double, double]
+    :param z: The z-range.
+    :type z: list[double, double]
+    :param lc: The length scale within the box refinement.
+    :type lc: double
+    :param blc: The background length scale.
+    :type blc: double
+    :return: A list of the fields representing the custom refinements.
+    :rtype: list[int]
+
+    """
     b = gmsh.model.mesh.field.add("Box")
     gmsh.model.mesh.field.setNumber(b, "XMin", x[0])
     gmsh.model.mesh.field.setNumber(b, "XMax", x[1])
@@ -47,13 +90,33 @@ def _customBox(x, y, z, lc, blc):
     return b
 
 def _customCylinder(x, y, radius, height, lc, blc):
+    """
+    Generates a field to represent a single box refinement.
+
+    :param x: The x-coordinate of the center.
+    :type x: double
+    :param y: The y-coordinate of the center.
+    :type y: double
+    :param radius: The radius of the cylinder.
+    :type radius: double
+    :param height: The upper and lower z-coordinates of the cylinder.
+    :type height: list[double, double]
+    :param lc: The length scale within the box refinement.
+    :type lc: double
+    :param blc: The background length scale.
+    :type blc: double
+    :return: A list of the fields representing the custom refinements.
+    :rtype: list[int]
+
+    """
     c = gmsh.model.mesh.field.add("Cylinder")
 
     gmsh.model.mesh.field.setNumber(c, "Radius", radius)
     gmsh.model.mesh.field.setNumber(c, "VIn", lc)
     gmsh.model.mesh.field.setNumber(c, "VOut", blc)
-    gmsh.model.mesh.field.setNumber(c, "ZAxis", height)
+    gmsh.model.mesh.field.setNumber(c, "ZAxis", height[1])
     gmsh.model.mesh.field.setNumber(c, "XCenter", x)
     gmsh.model.mesh.field.setNumber(c, "YCenter", y)
+    gmsh.model.mesh.field.setNumber(c, "ZCenter", height[0])
 
     return c
