@@ -29,6 +29,19 @@ These functions, found in ``src/functions2D.py``, serve as the backend for the 2
 
 .. autofunction:: src.functions2D.refineFarm2D
 
+Custom Refines functions
+-----------------------------------
+
+These functions, found in ``src/refines.py``, generate custom refinements.
+
+.. autofunction:: src.refines.generateCustomRefines
+
+.. autofunction:: src.refines._getAdjustedHeight
+
+.. autofunction:: src.refines._customBox
+
+.. autofunction:: src.refines._customCylinder
+
 Terrain Meshing functions
 -----------------------------------
 
