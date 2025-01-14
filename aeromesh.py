@@ -2,7 +2,7 @@ import gmsh
 import sys
 import yaml
 from src.structures import Domain, WindFarm
-from src.terrain import buildTerrainFromFile, buildTerrainDefault, buildTerrain2D
+from src.terrain import buildTerrainFromFile, buildTerrainDefault, buildTerrain2D, buildTerrainCylinder
 from src.functions2D import *
 from src.functions3D import *
 from src.refines import generateCustomRefines
@@ -94,6 +94,9 @@ def generate2DMesh(params):
 
     gmsh.model.geo.synchronize()
 
+    gmsh.model.mesh.removeDuplicateNodes()
+    gmsh.model.mesh.removeDuplicateElements()
+
     gmsh.model.mesh.generate(2)
 
 def generate3DMesh(params):
@@ -109,18 +112,27 @@ def generate3DMesh(params):
     gmsh.model.add("User Model")
 
     scale = params['refine']['global_scale']
+    farmType = params['domain']['type']
     params['refine']['turbine']['length_scale'] *= scale
     params['refine']['farm']['length_scale'] *= scale
     params['refine']['background_length_scale'] *= scale
 
     domain = Domain()
-    try:
-        terrainDefined = params['domain']['terrain_path']
-        terrain = buildTerrainFromFile(params, domain)
-    except KeyError:
-        terrain = buildTerrainDefault(params, domain)
+    terrain = None
+    if farmType == 'box':
+        try:
+            terrainDefined = params['domain']['terrain_path']
+            terrain = buildTerrainFromFile(params, domain)
+        except KeyError:
+            terrain = buildTerrainDefault(params, domain)
+    elif farmType == 'cylinder':
+        terrain = buildTerrainCylinder(params, domain)
+    else:
+        raise Exception("Invalid farm type specified. Farm types must be in [box, cylinder].")
 
-    v1 = gmsh.model.geo.addVolume([terrain], tag=999)
+    if farmType == 'box':
+        v1 = gmsh.model.geo.addVolume([terrain], tag=1)
+        
     wf = WindFarm()
     fields = generateTurbines(params, domain, wf)
     fields.append(999) #Background field, reserved number
@@ -140,6 +152,9 @@ def generate3DMesh(params):
     gmsh.model.mesh.generate(3)
 
     anisotropyScale(params)
+
+    if farmType == 'cylinder' and domain.interp:
+        cylinderTerrainAdjustment(domain, params)
 
 def main():
     gmsh.initialize()
@@ -187,6 +202,7 @@ def setYAMLDefaults(params):
     domain.setdefault('upper_aspect_ratio', 1)
     domain.setdefault('aspect_distance', 0)
     domain.setdefault('inflow_angle', 0)
+    domain.setdefault('type', 'box')
 
     refine.setdefault('global_scale', 1)
     refine.setdefault('turbine', {}).setdefault('num_turbines', 0)
@@ -209,7 +225,7 @@ def verifyYAML(params):
     customChecks = params['refine_custom']
     for key in domainChecks:
         valid = ['terrain_path', 'x_range', 'y_range', 'height', 'aspect_ratio', 'upper_aspect_ratio',
-                 'aspect_distance', 'dimension', 'inflow_angle']
+                 'aspect_distance', 'dimension', 'inflow_angle', 'type', 'center', 'radius']
         if key not in valid:
             print("Unknown field: " + key)
             err = 1

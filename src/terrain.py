@@ -57,7 +57,7 @@ def buildTerrainFromFile(params, domain):
     gmsh.model.mesh.field.setNumber(b, "VIn", lc)
     gmsh.model.mesh.field.setNumber(b, "VOut", lc * 2)
 
-    domain.setDomain([xMin, xMax], [yMin, yMax], totalHeight)
+    domain.setDomain(x_range=[xMin, xMax], y_range=[yMin, yMax], height=totalHeight)
 
     interp = LinearNDInterpolator(list(zip(xTerrain, yTerrain)), heightTerrain)
     xPoints = np.linspace(xMin, xMax, num=N + 1)
@@ -189,7 +189,7 @@ def buildTerrainDefault(params, domain):
     gmsh.model.mesh.field.setNumber(b, "VIn", lc)
     gmsh.model.mesh.field.setNumber(b, "VOut", lc * 2)
 
-    domain.setDomain([xMin, xMax], [yMin, yMax], totalHeight)
+    domain.setDomain(x_range=[xMin, xMax], y_range=[yMin, yMax], height=totalHeight)
 
     b1 = gmsh.model.geo.addPoint(xMax, yMin, 0)
     b2 = gmsh.model.geo.addPoint(xMin, yMin, 0)
@@ -234,6 +234,57 @@ def buildTerrainDefault(params, domain):
 
     return gmsh.model.geo.addSurfaceLoop([base, f1, f2, f3, f4, top])
 
+def buildTerrainCylinder(params, domain):
+    centerLocation = params['domain']['center']
+    radius = params['domain']['radius']
+    height = params['domain']['height']
+    aspect = params['domain']['aspect_ratio']
+    upper_aspect = params['domain']['upper_aspect_ratio']
+    aspect_distance = params['domain']['aspect_distance']
+    lc = params['refine']['background_length_scale']
+    filename = params['domain'].get('terrain_path')
+
+    lowerHeight = aspect_distance * aspect
+    upperHeight = (height - aspect_distance) * upper_aspect
+    totalHeight = lowerHeight + upperHeight
+
+    domain.setDomain(radius=radius, center=centerLocation, height=totalHeight)
+
+    if filename:
+        terrain = np.loadtxt(filename)
+
+        xTerrain = terrain[1:, 0]
+        yTerrain = terrain[1:, 1]
+        heightTerrain = terrain[1:, 2]
+
+        interp = LinearNDInterpolator(list(zip(xTerrain, yTerrain)), heightTerrain)
+        domain.setInterp(interp)
+
+    c = gmsh.model.mesh.field.add("Cylinder", tag=999)
+    gmsh.model.mesh.field.setNumber(c, "Radius", radius)
+    gmsh.model.mesh.field.setNumber(c, "XCenter", centerLocation[0])
+    gmsh.model.mesh.field.setNumber(c, "YCenter", centerLocation[1])
+    gmsh.model.mesh.field.setNumber(c, "ZAxis", height)
+    gmsh.model.mesh.field.setNumber(c, "VIn", lc)
+    gmsh.model.mesh.field.setNumber(c, "VOut", lc * 2)
+
+    center = gmsh.model.geo.addPoint(centerLocation[0], centerLocation[1], 0)
+    posX = gmsh.model.geo.addPoint(centerLocation[0] + radius, centerLocation[1], 0)
+    negX = gmsh.model.geo.addPoint(centerLocation[0] - radius, centerLocation[1], 0)
+    posY = gmsh.model.geo.addPoint(centerLocation[0], centerLocation[1] + radius, 0)
+    negY = gmsh.model.geo.addPoint(centerLocation[0], centerLocation[1] - radius, 0)
+
+    a1 = gmsh.model.geo.addCircleArc(posX, center, negY)
+    a2 = gmsh.model.geo.addCircleArc(negY, center, negX)
+    a3 = gmsh.model.geo.addCircleArc(negX, center, posY)
+    a4 = gmsh.model.geo.addCircleArc(posY, center, posX)
+
+    loop = gmsh.model.geo.addCurveLoop([a1, a2, a3, a4])
+    surface = gmsh.model.geo.addPlaneSurface([loop], tag=999)
+
+    height = params['domain']['height']
+    v1 = gmsh.model.geo.extrude([(2, surface)], 0, 0, totalHeight)
+
 def buildTerrain2D(params, domain):
 
     """
@@ -254,7 +305,7 @@ def buildTerrain2D(params, domain):
     y_range = params['domain']['y_range']
     lc = params['refine']['background_length_scale']
     
-    domain.setDomain(x_range, y_range, 0)
+    domain.setDomain(x_range=x_range, y_range=y_range, height=0)
 
     b1 = gmsh.model.geo.addPoint(x_range[1], y_range[0], 0)
     b2 = gmsh.model.geo.addPoint(x_range[0], y_range[0], 0)

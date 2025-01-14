@@ -99,7 +99,6 @@ def placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, asp
     turbine = [gmsh.model.geo.addPoint(x, y, z)]
     anisoPoints = []
 
-
     ###
     # These loops build the body of the turbine.
     ###
@@ -109,7 +108,7 @@ def placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, asp
     for i in range(1, upPoints + 1):
         turbine.append(gmsh.model.geo.addPoint(x - increment * i, y, z))
     
-
+    
     if aspect == 1:
         aspect = 0 # Locally turns off anisotropy loops.
 
@@ -142,7 +141,6 @@ def placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, asp
 
     turbineTags = list(tag for tag in zip([0] * len(turbine), turbine))
     gmsh.model.geo.rotate(turbineTags, x, y, z, 0, 0, 1, inflow)
-
     gmsh.model.geo.synchronize()
 
     for point in turbine:
@@ -156,9 +154,8 @@ def placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, asp
         else:
             gmsh.model.geo.remove([(0, point)])
             turbine.remove(point)
-
     gmsh.model.geo.synchronize()
-    gmsh.model.mesh.embed(0, turbine, 3, 999)
+    gmsh.model.mesh.embed(0, turbine, 3, 1)
 
     for level in anisoPoints:
         levelTags = list(tag for tag in zip([0] * len(level), level))
@@ -179,7 +176,7 @@ def placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, asp
                 level.remove(point)
 
         gmsh.model.geo.synchronize()
-        gmsh.model.mesh.embed(0, level, 3, 999)
+        gmsh.model.mesh.embed(0, level, 3, 1)
 
     gmsh.model.geo.synchronize()
 
@@ -279,7 +276,7 @@ def calcEllipse(a, b, z):
 def refineFarm3D(params, wf):
 
     """
-    Initializes a 'Box' field that sets points within the minimum bounding regoin
+    Initializes a 'Box' or 'Cylinder' field that sets points within the minimum bounding regoin
     surrounding the farm to the farm's meshing constraint.
 
     :param params: The parameter dictionary.
@@ -328,3 +325,22 @@ def refineFarm3D(params, wf):
         return c
     else:
         return None
+    
+def cylinderTerrainAdjustment(domain, params):
+
+    height = params['domain']['height']
+    gradient = lambda z, h : (h - z) / h
+
+    nodes = gmsh.model.mesh.getNodes()
+    tags = nodes[0]
+    coords = nodes[1].reshape(-1, 3)
+    for tag, coord in zip(tags, coords):
+        x, y, z = coord[0], coord[1], coord[2]
+        interpolation = domain.interp(x, y)
+        coord[2] = (interpolation * gradient(z, height)) + z
+
+        gmsh.model.mesh.setNode(tag, coord, [])
+
+    gmsh.model.geo.synchronize()
+    gmsh.model.mesh.removeDuplicateElements()
+    gmsh.model.mesh.removeDuplicateNodes()
