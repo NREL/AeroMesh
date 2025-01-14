@@ -328,19 +328,10 @@ def refineFarm3D(params, wf):
     
 def cylinderTerrainAdjustment(domain, params):
 
-    nodes = gmsh.model.mesh.getNodes(dim=2, tag=999)
-    tags = nodes[0]
-    coords = nodes[1].reshape(-1, 3)
-    for tag, coord in zip(tags, coords):
-        x, y = coord[0], coord[1]
-        coord[2] = domain.interp(x, y)
-
-        gmsh.model.mesh.setNode(tag, coord, [])
-
     height = params['domain']['height']
     gradient = lambda z, h : (h - z) / h
 
-    nodes = gmsh.model.mesh.getNodes(dim=3)
+    nodes = gmsh.model.mesh.getNodes()
     tags = nodes[0]
     coords = nodes[1].reshape(-1, 3)
     for tag, coord in zip(tags, coords):
