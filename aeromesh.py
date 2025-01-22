@@ -171,6 +171,7 @@ def main():
     gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", 0)
     gmsh.option.setNumber("Mesh.MeshSizeFromPoints", 0)
     gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", 0)
+    gmsh.option.setNumber("Mesh.OptimizeThreshold", 1)
 
     params['domain']['inflow_angle'] *= math.pi / 180
 
@@ -178,6 +179,7 @@ def main():
         generate3DMesh(params)
     else:
         generate2DMesh(params)
+    gmsh.model.mesh.optimize()
     
     if params['filetype'] != 'xdmf':
         filename = 'out.' + params['filetype']
