@@ -51,13 +51,16 @@ def _getAdjustedHeight(lower_aspect, upper_aspect, threshold, z_range):
 
     """
     bottom, top = z_range[0], z_range[1]
+    bottomDist = threshold - bottom
+    topDist = top - threshold
+    
     if bottom > threshold:
-        return [bottom * upper_aspect, top * upper_aspect]
+        bottomDist = 0
     
     if top <= threshold:
-        return [bottom * lower_aspect, top * lower_aspect]
+        topDist = 0
     
-    return  [bottom * lower_aspect, top * upper_aspect]
+    return  [bottom, top + (bottomDist * (lower_aspect - 1)) - (topDist * (1 - upper_aspect))]
 
 def _customBox(x, y, z, lc, blc):
     """
