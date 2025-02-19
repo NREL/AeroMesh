@@ -155,7 +155,6 @@ def placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, asp
             gmsh.model.geo.remove([(0, point)])
             turbine.remove(point)
     gmsh.model.geo.synchronize()
-    # gmsh.model.mesh.embed(0, turbine, 3, 1)
 
     for level in anisoPoints:
         levelTags = list(tag for tag in zip([0] * len(level), level))
@@ -176,7 +175,6 @@ def placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, asp
                 level.remove(point)
 
         gmsh.model.geo.synchronize()
-        # gmsh.model.mesh.embed(0, level, 3, 1)
 
     gmsh.model.geo.synchronize()
 
