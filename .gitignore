@@ -171,4 +171,5 @@ cython_debug/
 *.vtu
 
 translate.py
-mesh_test.py
+mesh_test*.py
+*.xml
