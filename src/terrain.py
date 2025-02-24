@@ -232,6 +232,13 @@ def buildTerrainDefault(params, domain):
     f3 = gmsh.model.geo.addPlaneSurface([face3], tag=993)
     f4 = gmsh.model.geo.addPlaneSurface([face4], tag=994)
 
+    s1 = gmsh.model.geo.addPhysicalGroup(2, [994], tag=1)
+    s2 = gmsh.model.geo.addPhysicalGroup(2, [993], tag=2)
+    s3 = gmsh.model.geo.addPhysicalGroup(2, [992], tag=3)
+    s4 = gmsh.model.geo.addPhysicalGroup(2, [995], tag=4)
+    s5 = gmsh.model.geo.addPhysicalGroup(2, [989], tag=5)
+    s6 = gmsh.model.geo.addPhysicalGroup(2, [990], tag=6)
+
     return gmsh.model.geo.addSurfaceLoop([base, f1, f2, f3, f4, top])
 
 def buildTerrainCylinder(params, domain):

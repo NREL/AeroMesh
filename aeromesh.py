@@ -1,5 +1,5 @@
 import gmsh
-import sys
+import sys, os
 import yaml
 from src.structures import Domain, WindFarm
 from src.terrain import buildTerrainFromFile, buildTerrainDefault, buildTerrain2D, buildTerrainCylinder
@@ -9,54 +9,34 @@ from src.refines import generateCustomRefines
 import meshio
 import numpy as np
 import math
+import tempfile
 
 def toXDMF(ndim):
-    elements = gmsh.model.mesh.getElements()
-    loc = 2 if ndim == 3 else 1
-    locTets = 4 if ndim == 3 else 2
-    indexTris = np.where(elements[0] == loc)[0][0]
-    indexTets = np.where(elements[0] == locTets)[0][0]
-    points = gmsh.model.mesh.getNodes()[1].reshape(-1, 3)
-    cells = elements[2][indexTets].reshape(-1, ndim + 1) - 1
-    triangles = elements[2][indexTris].reshape(-1, ndim) - 1
+    tempdir = tempfile.TemporaryDirectory()
+    gmsh.write(os.path.join(tempdir.name, "dummy.msh"))
 
-    faces = gmsh.model.getEntities(dim=ndim - 1)
-    tags = []
-    for face in faces:
-        target = face[1]
-        tag = 0
-        elements = gmsh.model.mesh.getElements(dim=ndim - 1, tag=target)
-        match target:
-            case 990:
-                tag = 6
-            case 989:
-                tag = 5
-            case 992:
-                tag = 3
-            case 993:
-                tag = 2
-            case 994:
-                tag = 1
-            case 995:
-                tag = 4
-            case _:
-                tag = 0
-        for _ in elements[1][0]:
-            tags.append(tag)
+    msh = meshio.read(os.path.join(tempdir.name, "dummy.msh"))
 
-    tags = np.array(tags).astype(int)
+    def create_mesh(mesh, type):
+        cells = mesh.get_cells_type(type)
+        cell_data = mesh.get_cell_data("gmsh:physical", type)
+        points = mesh.points
+        out_mesh = meshio.Mesh(points=points, cells={type: cells}, cell_data={"facet_tags": [cell_data.astype(np.int32)]})
+        return out_mesh
 
-    output_mesh_name = "out.xdmf"
-    output_boundary_mesh_name = output_mesh_name.split(".")[0] + "_boundary.xdmf"
     if ndim == 3:
-        tetra_mesh = meshio.Mesh(points=points, cells={"tetra": cells})
-        boundary_mesh = meshio.Mesh(points=points, cells=[("triangle", triangles)], cell_data={"facet_tags":[tags]})
-    else:
-        tetra_mesh = meshio.Mesh(points=points, cells={"triangle": cells})
-        boundary_mesh = meshio.Mesh(points=points, cells=[("line", triangles)], cell_data={"facet_tags":[tags]})
+        tetras = create_mesh(msh, 'tetra')
+        tris = create_mesh(msh, 'triangle')
+        meshio.write('out.xdmf', tetras)
+        meshio.write('out_boundary.xdmf', tris)
 
-    meshio.write(output_mesh_name, tetra_mesh)
-    meshio.write(output_boundary_mesh_name, boundary_mesh)
+    else:
+        tris = create_mesh(msh, 'triangle')
+        lines = create_mesh(msh, 'line')
+        meshio.write('out.xdmf', tris)
+        meshio.write('out_boundary.xdmf', lines)
+
+    tempdir.cleanup()
 
 def generate2DMesh(params):
 
@@ -132,6 +112,7 @@ def generate3DMesh(params):
 
     if farmType == 'box':
         v1 = gmsh.model.geo.addVolume([terrain], tag=1)
+        vp1 = gmsh.model.geo.addPhysicalGroup(3, [v1], tag=0)
         
     wf = WindFarm()
     fields = generateTurbines(params, domain, wf)
