@@ -17,10 +17,10 @@ def toXDMF(ndim):
 
     msh = meshio.read(os.path.join(tempdir.name, "dummy.msh"))
 
-    def create_mesh(mesh, type):
+    def create_mesh(mesh, type, prune_dim=False):
         cells = mesh.get_cells_type(type)
         cell_data = mesh.get_cell_data("gmsh:physical", type)
-        points = mesh.points
+        points = mesh.points if prune_dim == False else mesh.points[:, :2]
         out_mesh = meshio.Mesh(points=points, cells={type: cells}, cell_data={"facet_tags": [cell_data.astype(np.int32)]})
         return out_mesh
 
@@ -31,8 +31,8 @@ def toXDMF(ndim):
         meshio.write('out_boundary.xdmf', tris)
 
     else:
-        tris = create_mesh(msh, 'triangle')
-        lines = create_mesh(msh, 'line')
+        tris = create_mesh(msh, 'triangle', prune_dim=True)
+        lines = create_mesh(msh, 'line', prune_dim=True)
         meshio.write('out.xdmf', tris)
         meshio.write('out_boundary.xdmf', lines)
 
@@ -60,6 +60,7 @@ def generate2DMesh(params):
 
     farmBorder = buildTerrain2D(params, domain)
     farm = gmsh.model.geo.addPlaneSurface([farmBorder], tag=999)
+    sp1 = gmsh.model.geo.addPhysicalGroup(2, [farm], tag=0)
 
     fields = [999]
     fields.extend(buildFarms2D(params, wf, domain))

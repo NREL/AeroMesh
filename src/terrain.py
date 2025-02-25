@@ -326,6 +326,11 @@ def buildTerrain2D(params, domain):
 
     farmBorder = gmsh.model.geo.addCurveLoop([lb1, lb2, lb3, lb4])
 
+    s1 = gmsh.model.geo.addPhysicalGroup(1, [994], tag=1)
+    s2 = gmsh.model.geo.addPhysicalGroup(1, [993], tag=2)
+    s3 = gmsh.model.geo.addPhysicalGroup(1, [992], tag=3)
+    s4 = gmsh.model.geo.addPhysicalGroup(1, [995], tag=4)
+
     b = gmsh.model.mesh.field.add("Box", tag=999)
     gmsh.model.mesh.field.setNumber(b, "XMin", x_range[0])
     gmsh.model.mesh.field.setNumber(b, "XMax", x_range[1])
