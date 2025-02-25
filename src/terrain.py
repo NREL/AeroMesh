@@ -292,6 +292,13 @@ def buildTerrainCylinder(params, domain):
     height = params['domain']['height']
     v1 = gmsh.model.geo.extrude([(2, surface)], 0, 0, totalHeight)
 
+    base = gmsh.model.geo.addPhysicalGroup(2, [999], tag=7)
+    top = gmsh.model.geo.addPhysicalGroup(2, [1021], tag=8)
+    inflow = gmsh.model.geo.addPhysicalGroup(2, [1012, 1008], tag=6)
+    outflow = gmsh.model.geo.addPhysicalGroup(2, [1016, 1020], tag=5)
+
+    vol = gmsh.model.geo.addPhysicalGroup(3, [1], tag=0)
+
 def buildTerrain2D(params, domain):
 
     """
