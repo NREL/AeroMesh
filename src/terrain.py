@@ -145,7 +145,6 @@ def buildTerrainFromFile(params, domain):
 
     return sl1
 
-####TO FIX: Tag Order as a sanity check
 def buildTerrainDefault(params, domain):
 
     """
@@ -294,10 +293,43 @@ def buildTerrainCylinder(params, domain):
 
     base = gmsh.model.geo.addPhysicalGroup(2, [999], tag=7)
     top = gmsh.model.geo.addPhysicalGroup(2, [1021], tag=8)
-    inflow = gmsh.model.geo.addPhysicalGroup(2, [1012, 1008], tag=6)
-    outflow = gmsh.model.geo.addPhysicalGroup(2, [1016, 1020], tag=5)
+    outflow = gmsh.model.geo.addPhysicalGroup(2, [1020, 1008], tag=5)
+    inflow = gmsh.model.geo.addPhysicalGroup(2, [1016, 1012], tag=6)
 
     vol = gmsh.model.geo.addPhysicalGroup(3, [1], tag=0)
+
+def buildTerrainCircle(params, domain):
+    centerLocation = params['domain']['center']
+    radius = params['domain']['radius']
+    lc = params['refine']['background_length_scale']
+
+    domain.setDomain(radius=radius, center=centerLocation)
+
+    c = gmsh.model.mesh.field.add("Cylinder", tag=999)
+    gmsh.model.mesh.field.setNumber(c, "Radius", radius)
+    gmsh.model.mesh.field.setNumber(c, "XCenter", centerLocation[0])
+    gmsh.model.mesh.field.setNumber(c, "YCenter", centerLocation[1])
+    gmsh.model.mesh.field.setNumber(c, "ZAxis", 1)
+    gmsh.model.mesh.field.setNumber(c, "VIn", lc)
+    gmsh.model.mesh.field.setNumber(c, "VOut", lc * 2)
+
+    center = gmsh.model.geo.addPoint(centerLocation[0], centerLocation[1], 0)
+    posX = gmsh.model.geo.addPoint(centerLocation[0] + radius, centerLocation[1], 0)
+    negX = gmsh.model.geo.addPoint(centerLocation[0] - radius, centerLocation[1], 0)
+    posY = gmsh.model.geo.addPoint(centerLocation[0], centerLocation[1] + radius, 0)
+    negY = gmsh.model.geo.addPoint(centerLocation[0], centerLocation[1] - radius, 0)
+
+    a1 = gmsh.model.geo.addCircleArc(posX, center, negY)
+    a2 = gmsh.model.geo.addCircleArc(negY, center, negX)
+    a3 = gmsh.model.geo.addCircleArc(negX, center, posY)
+    a4 = gmsh.model.geo.addCircleArc(posY, center, posX)
+
+    outflow = gmsh.model.geo.addPhysicalGroup(1, [a1, a4], tag=7)
+    inflow = gmsh.model.geo.addPhysicalGroup(1, [a2, a3], tag=8)
+
+    loop = gmsh.model.geo.addCurveLoop([a1, a2, a3, a4])
+    
+    return loop
 
 def buildTerrain2D(params, domain):
 

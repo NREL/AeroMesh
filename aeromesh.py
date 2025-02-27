@@ -2,7 +2,7 @@ import gmsh
 import sys, os
 import yaml
 from src.structures import Domain, WindFarm
-from src.terrain import buildTerrainFromFile, buildTerrainDefault, buildTerrain2D, buildTerrainCylinder
+from src.terrain import buildTerrainFromFile, buildTerrainDefault, buildTerrain2D, buildTerrainCylinder, buildTerrainCircle
 from src.functions2D import *
 from src.functions3D import *
 from src.refines import generateCustomRefines
@@ -53,12 +53,18 @@ def generate2DMesh(params):
     params['refine']['turbine']['length_scale'] *= scale
     params['refine']['farm']['length_scale'] *= scale
     params['refine']['background_length_scale'] *= scale
+    farmType = params['domain']['type']
 
     domain = Domain()
 
     wf = WindFarm()
-
-    farmBorder = buildTerrain2D(params, domain)
+    if farmType == 'box':
+        farmBorder = buildTerrain2D(params, domain)
+    elif farmType == 'cylinder':
+        farmBorder = buildTerrainCircle(params, domain)
+    else:
+        raise Exception("Invalid farm type specified. Farm types must be in [box, cylinder].")
+    
     farm = gmsh.model.geo.addPlaneSurface([farmBorder], tag=999)
     sp1 = gmsh.model.geo.addPhysicalGroup(2, [farm], tag=0)
 
