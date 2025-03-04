@@ -329,6 +329,7 @@ def cylinderTerrainAdjustment(domain, params):
 
     z_range = params['domain']['z_range']
     gradient = lambda z, h : (h - z) / h
+    base, height = z_range[0], z_range[1]
 
     nodes = gmsh.model.mesh.getNodes()
     tags = nodes[0]
