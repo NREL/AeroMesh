@@ -141,6 +141,13 @@ def buildTerrainFromFile(params, domain):
     s6 = gmsh.model.geo.addPlaneSurface([ll6], tag=992) #xMin face
     sl1 = gmsh.model.geo.addSurfaceLoop([s1, s3, s4, s5, s6, 989]) #Bottom face (989)
 
+    p1 = gmsh.model.geo.addPhysicalGroup(2, [994], tag=1)
+    p2 = gmsh.model.geo.addPhysicalGroup(2, [993], tag=2)
+    p3 = gmsh.model.geo.addPhysicalGroup(2, [992], tag=3)
+    p4 = gmsh.model.geo.addPhysicalGroup(2, [995], tag=4)
+    p5 = gmsh.model.geo.addPhysicalGroup(2, [989], tag=5)
+    p6 = gmsh.model.geo.addPhysicalGroup(2, [990], tag=6)
+
     gmsh.model.geo.synchronize()
 
     return sl1
