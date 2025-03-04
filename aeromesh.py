@@ -214,7 +214,7 @@ def verifyYAML(params):
     refineChecks = params['refine']
     customChecks = params['refine_custom']
     for key in domainChecks:
-        valid = ['terrain_path', 'x_range', 'y_range', 'height', 'aspect_ratio', 'upper_aspect_ratio',
+        valid = ['terrain_path', 'x_range', 'y_range', 'z_range', 'aspect_ratio', 'upper_aspect_ratio',
                  'aspect_distance', 'dimension', 'inflow_angle', 'type', 'center', 'radius']
         if key not in valid:
             print("Unknown field: " + key)

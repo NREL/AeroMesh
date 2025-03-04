@@ -117,18 +117,18 @@ def placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, asp
     ###
     for i in range(1, math.floor(aspect + 1)):
         level = []
-        if z + (rotor * i) < domain.height: 
+        if z + (rotor * i) < domain.z_range[1]: 
             gmsh.model.geo.addPoint(x, y, z + (rotor * i))
         if z - (rotor * i) > domain.calculateGround(x, y):
             gmsh.model.geo.addPoint(x, y, z - (rotor * i))
         for j in range(1, downPoints + 1):
-            if z + (rotor * i) < domain.height: 
+            if z + (rotor * i) < domain.z_range[1]: 
                 level.append(gmsh.model.geo.addPoint(x + increment * j, y, z + (rotor * i)))
             if z - (rotor * i) > domain.calculateGround(x + increment * j, y):
                 level.append(gmsh.model.geo.addPoint(x + increment * j, y, z - (rotor * i)))
 
         for j in range(1, upPoints + 1):
-            if z + (rotor * i) < domain.height: 
+            if z + (rotor * i) < domain.z_range[1]: 
                 level.append(gmsh.model.geo.addPoint(x - increment * j, y, z + (rotor * i)))
             if z - (rotor * i) > domain.calculateGround(x - increment * j, y):
                 level.append(gmsh.model.geo.addPoint(x - increment * j, y, z - (rotor * i)))
@@ -227,8 +227,9 @@ def anisotropyScale(params):
 
     aspect = params['domain']['aspect_ratio']
     upper_aspect = params['domain']['upper_aspect_ratio']
+    z_range = params['domain']['z_range']
+    base, height = z_range[0], z_range[1]
     dist = params['domain']['aspect_distance']
-    height = params['domain']['height']
 
     if aspect == 1:
         return
@@ -326,7 +327,7 @@ def refineFarm3D(params, wf):
     
 def cylinderTerrainAdjustment(domain, params):
 
-    height = params['domain']['height']
+    z_range = params['domain']['z_range']
     gradient = lambda z, h : (h - z) / h
 
     nodes = gmsh.model.mesh.getNodes()
