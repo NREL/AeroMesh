@@ -196,7 +196,7 @@ def setYAMLDefaults(params):
 
     refine.setdefault('global_scale', 1)
     refine.setdefault('turbine', {}).setdefault('num_turbines', 0)
-    refine.setdefault('turbine', {}).setdefault('type', 'rectangle')
+    refine.setdefault('turbine', {}).setdefault('type', 'simple')
 
     refine.setdefault('farm', {}).setdefault('length_scale', params['refine']['background_length_scale'])
     refine.setdefault('farm', {}).setdefault('threshold_distance', 0)

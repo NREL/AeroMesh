@@ -154,9 +154,9 @@ def buildFarms2D(params, wf, domain):
 
         if not domain.withinDomain(x, y):
             raise Exception("Invalid turbine location.")
-        if turbineType == 'circle':
+        if turbineType == 'simple':
             turbine = generateTurbine2DCircle(x, y, lcTurbine, lcBackground, rotor, wf)
-        elif turbineType == 'rectangle':
+        elif turbineType == 'wake':
             upstream = params['refine']['turbine']['threshold_upstream_distance']
             downstream = params['refine']['turbine']['threshold_downstream_distance']
             turbine = generateTurbine2DRect(x, y, lcTurbine, lcBackground, lcFarm, rotor, upstream, downstream, inflow, wf, domain)

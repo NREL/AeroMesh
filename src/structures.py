@@ -18,6 +18,9 @@ class Domain():
         self.radius = radius
         self.center = center
 
+        if self.z_range[0] < 0:
+            raise Exception("Invalid Height: Minimum height less than 0.")
+
     def setInterp(self, interp):
         self.interp = interp
 

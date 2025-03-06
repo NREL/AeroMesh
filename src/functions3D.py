@@ -29,7 +29,10 @@ def generateTurbines(params, domain, wf):
     downstream = params['refine']['turbine']['threshold_downstream_distance']
     rotor = params['refine']['turbine']['threshold_rotor_distance']
     aspect = params['domain']['aspect_ratio']
+    aspect_upper = params['domain']['upper_aspect_ratio']
+    aspect_distance = params['domain']['aspect_distance']
     inflow = params['domain']['inflow_angle']
+    turbineType = params['refine']['turbine']['type']
 
     interp = domain.interp
     for i in range(nFarms):
@@ -47,11 +50,35 @@ def generateTurbines(params, domain, wf):
         if not domain.withinDomain(x, y, z):
             raise Exception("Invalid turbine location.")
         
-        # 0: points placed in x-direction 1: points placed in y-direction.
-        fields.extend(placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, aspect, wf, domain))
+        if turbineType == 'wake':
+            fields.extend(placeTurbineWake(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, aspect, wf, domain))
+        elif turbineType == 'simple':
+            ground = domain.calculateGround(x, y)
+            fields.extend(placeTurbineSimple(x, y, rotor, hh, lc, lcb, ground, aspect, aspect_upper, aspect_distance))
+        else:
+            raise Exception("Invalid turbine type. Must be simple or wake.")
+
+    return fields
+
+def placeTurbineSimple(x, y, rotor, hh, lc, lcb, ground, aspect, upperAspect, aspectDist):
+    radius = rotor
+    top = ground + hh + (rotor / 2)
+    bottom = ground
+    bottomDist = aspectDist - bottom
+    topDist = top - aspectDist
+    
+    c = gmsh.model.mesh.field.add("Cylinder")
+    gmsh.model.mesh.field.setNumber(c, "Radius", radius)
+    gmsh.model.mesh.field.setNumber(c, "XCenter", x)
+    gmsh.model.mesh.field.setNumber(c, "YCenter", y)
+    gmsh.model.mesh.field.setNumber(c, "ZAxis", top + (bottomDist * (aspect - 1)) - (topDist * (1 - upperAspect)))
+    gmsh.model.mesh.field.setNumber(c, "VIn", lc)
+    gmsh.model.mesh.field.setNumber(c, "VOut", lcb)
+
+    fields = [c]
     return fields
         
-def placeTurbine(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, aspect, wf, domain):
+def placeTurbineWake(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, aspect, wf, domain):
 
     """
     Builds a single turbine in 3D space at the target (x, y, z) triple.
