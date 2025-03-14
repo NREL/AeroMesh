@@ -85,7 +85,7 @@ def buildTerrainFromFile(params, domain):
             coords.extend([
                 xPoints[i],
                 yPoints[j],
-                (interp(xPoints[i], yPoints[j]) + base) * aspect
+                (interp(xPoints[i], yPoints[j])) * aspect
             ])
             if i > 0 and j > 0:
                 tris.extend([tag(i - 1, j - 1), tag(i, j - 1), tag(i - 1, j)])
@@ -363,7 +363,7 @@ def buildTerrain2D(params, domain):
     y_range = params['domain']['y_range']
     lc = params['refine']['background_length_scale']
     
-    domain.setDomain(x_range=x_range, y_range=y_range, height=0)
+    domain.setDomain(x_range=x_range, y_range=y_range)
 
     b1 = gmsh.model.geo.addPoint(x_range[1], y_range[0], 0)
     b2 = gmsh.model.geo.addPoint(x_range[0], y_range[0], 0)
