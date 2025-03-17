@@ -54,18 +54,24 @@ def generateTurbines(params, domain, wf):
             fields.extend(placeTurbineWake(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, aspect, wf, domain))
         elif turbineType == 'simple':
             ground = domain.calculateGround(x, y)
-            fields.extend(placeTurbineSimple(x, y, rotor, hh, lc, lcb, ground, aspect, aspect_upper, aspect_distance))
+            fields.extend(placeTurbineSimple(x, y, rotor, hh, lc, lcb, ground, aspect, aspect_upper, aspect_distance, wf))
         else:
             raise Exception("Invalid turbine type. Must be simple or wake.")
 
     return fields
 
-def placeTurbineSimple(x, y, rotor, hh, lc, lcb, ground, aspect, upperAspect, aspectDist):
+def placeTurbineSimple(x, y, rotor, hh, lc, lcb, ground, aspect, upperAspect, aspectDist, wf):
     radius = rotor
     top = ground + hh + (rotor / 2)
     bottom = ground
     bottomDist = aspectDist - bottom
     topDist = top - aspectDist
+
+    wf.updateXMax(x)
+    wf.updateXMin(x)
+    wf.updateYMax(y)
+    wf.updateYMin(y)
+    wf.updateZMax(top + (bottomDist * (aspect - 1)) - (topDist * (1 - upperAspect)))
     
     c = gmsh.model.mesh.field.add("Cylinder")
     gmsh.model.mesh.field.setNumber(c, "Radius", radius)
