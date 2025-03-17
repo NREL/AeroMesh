@@ -24,11 +24,13 @@ def buildTerrainFromFile(params, domain):
     filename = params['domain']['terrain_path']
     x_range = params['domain']['x_range']
     y_range = params['domain']['y_range']
-    height = params['domain']['height']
+    z_range = params['domain']['z_range']
     aspect = params['domain']['aspect_ratio']
     upper_aspect = params['domain']['upper_aspect_ratio']
     aniso_dist = params['domain']['aspect_distance']
     lc = params['refine']['background_length_scale']
+
+    base, height = z_range[0], z_range[1]
 
     N = 300
 
@@ -52,12 +54,12 @@ def buildTerrainFromFile(params, domain):
     gmsh.model.mesh.field.setNumber(b, "XMax", xMax)
     gmsh.model.mesh.field.setNumber(b, "YMin", yMin)
     gmsh.model.mesh.field.setNumber(b, "YMax", yMax)
-    gmsh.model.mesh.field.setNumber(b, "ZMin", 0)
+    gmsh.model.mesh.field.setNumber(b, "ZMin", base)
     gmsh.model.mesh.field.setNumber(b, "ZMax", totalHeight)
     gmsh.model.mesh.field.setNumber(b, "VIn", lc)
     gmsh.model.mesh.field.setNumber(b, "VOut", lc * 2)
 
-    domain.setDomain(x_range=[xMin, xMax], y_range=[yMin, yMax], height=totalHeight)
+    domain.setDomain(x_range=[xMin, xMax], y_range=[yMin, yMax], height=[0, totalHeight])
 
     interp = LinearNDInterpolator(list(zip(xTerrain, yTerrain)), heightTerrain)
     xPoints = np.linspace(xMin, xMax, num=N + 1)
@@ -83,7 +85,7 @@ def buildTerrainFromFile(params, domain):
             coords.extend([
                 xPoints[i],
                 yPoints[j],
-                interp(xPoints[i], yPoints[j]) * aspect
+                (interp(xPoints[i], yPoints[j])) * aspect
             ])
             if i > 0 and j > 0:
                 tris.extend([tag(i - 1, j - 1), tag(i, j - 1), tag(i - 1, j)])
@@ -170,11 +172,13 @@ def buildTerrainDefault(params, domain):
 
     x_range = params['domain']['x_range']
     y_range = params['domain']['y_range']
-    height = params['domain']['height']
+    z_range = params['domain']['z_range']
     aspect = params['domain']['aspect_ratio']
     upper_aspect = params['domain']['upper_aspect_ratio']
     aniso_dist = params['domain']['aspect_distance']
     lc = params['refine']['background_length_scale']
+
+    base, height = z_range[0], z_range[1]
 
     xMin = x_range[0]
     xMax = x_range[1]
@@ -195,12 +199,12 @@ def buildTerrainDefault(params, domain):
     gmsh.model.mesh.field.setNumber(b, "VIn", lc)
     gmsh.model.mesh.field.setNumber(b, "VOut", lc * 2)
 
-    domain.setDomain(x_range=[xMin, xMax], y_range=[yMin, yMax], height=totalHeight)
+    domain.setDomain(x_range=[xMin, xMax], y_range=[yMin, yMax], height=[0, totalHeight])
 
-    b1 = gmsh.model.geo.addPoint(xMax, yMin, 0)
-    b2 = gmsh.model.geo.addPoint(xMin, yMin, 0)
-    b3 = gmsh.model.geo.addPoint(xMax, yMax, 0)
-    b4 = gmsh.model.geo.addPoint(xMin, yMax, 0)
+    b1 = gmsh.model.geo.addPoint(xMax, yMin, base * aspect)
+    b2 = gmsh.model.geo.addPoint(xMin, yMin, base * aspect)
+    b3 = gmsh.model.geo.addPoint(xMax, yMax, base * aspect)
+    b4 = gmsh.model.geo.addPoint(xMin, yMax, base * aspect)
 
     lb1 = gmsh.model.geo.addLine(b1, b3)
     lb2 = gmsh.model.geo.addLine(b3, b4)
@@ -250,18 +254,20 @@ def buildTerrainDefault(params, domain):
 def buildTerrainCylinder(params, domain):
     centerLocation = params['domain']['center']
     radius = params['domain']['radius']
-    height = params['domain']['height']
+    z_range = params['domain']['z_range']
     aspect = params['domain']['aspect_ratio']
     upper_aspect = params['domain']['upper_aspect_ratio']
     aspect_distance = params['domain']['aspect_distance']
     lc = params['refine']['background_length_scale']
     filename = params['domain'].get('terrain_path')
 
+    base, height = z_range[0], z_range[1]
+
     lowerHeight = aspect_distance * aspect
     upperHeight = (height - aspect_distance) * upper_aspect
     totalHeight = lowerHeight + upperHeight
 
-    domain.setDomain(radius=radius, center=centerLocation, height=totalHeight)
+    domain.setDomain(radius=radius, center=centerLocation, height=[0, totalHeight])
 
     if filename:
         terrain = np.loadtxt(filename)
@@ -282,10 +288,10 @@ def buildTerrainCylinder(params, domain):
     gmsh.model.mesh.field.setNumber(c, "VOut", lc * 2)
 
     center = gmsh.model.geo.addPoint(centerLocation[0], centerLocation[1], 0)
-    posX = gmsh.model.geo.addPoint(centerLocation[0] + radius, centerLocation[1], 0)
-    negX = gmsh.model.geo.addPoint(centerLocation[0] - radius, centerLocation[1], 0)
-    posY = gmsh.model.geo.addPoint(centerLocation[0], centerLocation[1] + radius, 0)
-    negY = gmsh.model.geo.addPoint(centerLocation[0], centerLocation[1] - radius, 0)
+    posX = gmsh.model.geo.addPoint(centerLocation[0] + radius, centerLocation[1], base * aspect)
+    negX = gmsh.model.geo.addPoint(centerLocation[0] - radius, centerLocation[1], base * aspect)
+    posY = gmsh.model.geo.addPoint(centerLocation[0], centerLocation[1] + radius, base * aspect)
+    negY = gmsh.model.geo.addPoint(centerLocation[0], centerLocation[1] - radius, base * aspect)
 
     a1 = gmsh.model.geo.addCircleArc(posX, center, negY)
     a2 = gmsh.model.geo.addCircleArc(negY, center, negX)
@@ -295,10 +301,9 @@ def buildTerrainCylinder(params, domain):
     loop = gmsh.model.geo.addCurveLoop([a1, a2, a3, a4])
     surface = gmsh.model.geo.addPlaneSurface([loop], tag=999)
 
-    height = params['domain']['height']
     v1 = gmsh.model.geo.extrude([(2, surface)], 0, 0, totalHeight)
 
-    base = gmsh.model.geo.addPhysicalGroup(2, [999], tag=7)
+    bot = gmsh.model.geo.addPhysicalGroup(2, [999], tag=7)
     top = gmsh.model.geo.addPhysicalGroup(2, [1021], tag=8)
     outflow = gmsh.model.geo.addPhysicalGroup(2, [1020, 1008], tag=5)
     inflow = gmsh.model.geo.addPhysicalGroup(2, [1016, 1012], tag=6)
@@ -358,7 +363,7 @@ def buildTerrain2D(params, domain):
     y_range = params['domain']['y_range']
     lc = params['refine']['background_length_scale']
     
-    domain.setDomain(x_range=x_range, y_range=y_range, height=0)
+    domain.setDomain(x_range=x_range, y_range=y_range)
 
     b1 = gmsh.model.geo.addPoint(x_range[1], y_range[0], 0)
     b2 = gmsh.model.geo.addPoint(x_range[0], y_range[0], 0)
