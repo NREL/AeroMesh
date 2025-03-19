@@ -181,6 +181,34 @@ def main():
 
     gmsh.finalize()
 
+def runAeroMesh(params):
+    gmsh.initialize()
+
+    setYAMLDefaults(params)
+    verifyYAML(params)
+
+    gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", 0)
+    gmsh.option.setNumber("Mesh.MeshSizeFromPoints", 0)
+    gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", 0)
+    gmsh.option.setNumber("Mesh.OptimizeThreshold", 1)
+
+    params['domain']['inflow_angle'] *= math.pi / 180
+
+    if params['domain']['dimension'] == 3:
+        generate3DMesh(params)
+    else:
+        generate2DMesh(params)
+    gmsh.model.mesh.optimize()
+    
+    if params['filetype'] != 'xdmf':
+        filename = 'out.' + params['filetype']
+        gmsh.write(filename)
+    else:
+        ndim = params['domain']['dimension']
+        toXDMF(ndim)
+
+    gmsh.finalize()
+
 def setYAMLDefaults(params):
     refine = params['refine']
     domain = params['domain']
