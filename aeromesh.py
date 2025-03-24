@@ -160,6 +160,8 @@ def main():
     gmsh.option.setNumber("Mesh.MeshSizeFromPoints", 0)
     gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", 0)
     gmsh.option.setNumber("Mesh.OptimizeThreshold", 1)
+    if params['suppress_out'] > 0:
+        gmsh.option.setNumber("General.Verbosity", 0)
 
     params['domain']['inflow_angle'] *= math.pi / 180
 
@@ -191,6 +193,8 @@ def runAeroMesh(params):
     gmsh.option.setNumber("Mesh.MeshSizeFromPoints", 0)
     gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", 0)
     gmsh.option.setNumber("Mesh.OptimizeThreshold", 1)
+    if params['suppress_out'] > 0:
+        gmsh.option.setNumber("General.Verbosity", 0)
 
     params['domain']['inflow_angle'] *= math.pi / 180
 
@@ -214,6 +218,7 @@ def setYAMLDefaults(params):
     domain = params['domain']
 
     params.setdefault('filetype', 'msh')
+    params.setdefault('suppress_out', 1)
     params.setdefault('refine_custom', {}).setdefault('num_refines', 0)
 
     domain.setdefault('aspect_ratio', 1)
@@ -232,11 +237,13 @@ def setYAMLDefaults(params):
 
 def verifyYAML(params):
     err = 0
-    print("***----------------------------------------***")
-    print("Validating YAML file.")
+    suppress = params['suppress_out']
+    if not suppress:
+        print("***----------------------------------------***")
+        print("Validating YAML file.")
     for key in params:
-        if key not in ['refine', 'domain', 'filetype', 'refine_custom']:
-            print("Unknown field: " + key)
+        if key not in ['refine', 'domain', 'filetype', 'refine_custom', 'suppress_out']:
+            print("AeroMesh: Unknown field: " + key)
             err = 1
     domainChecks = params['domain']
     refineChecks = params['refine']
@@ -245,12 +252,12 @@ def verifyYAML(params):
         valid = ['terrain_path', 'x_range', 'y_range', 'z_range', 'aspect_ratio', 'upper_aspect_ratio',
                  'aspect_distance', 'dimension', 'inflow_angle', 'type', 'center', 'radius']
         if key not in valid:
-            print("Unknown field: " + key)
+            print("AeroMesh: Unknown field: " + key)
             err = 1
     for key in refineChecks:
         valid = ['turbine', 'background_length_scale', 'farm', 'global_scale']
         if key not in valid:
-            print("Unknown field: " + key)
+            print("AeroMesh: Unknown field: " + key)
             err = 1
     turbineChecks = params['refine']['turbine']
     for key in turbineChecks:
@@ -261,10 +268,10 @@ def verifyYAML(params):
             validSubkeys = ['x', 'y', 'HH']
             for subkey in turbineChecks[key]:
                 if subkey not in validSubkeys:
-                    print("Unknown field: " + str(key))
+                    print("AeroMesh: Unknown field: " + str(key))
                     err = 1
         elif key not in validParams:
-            print("Unknown field: " + str(key))
+            print("AeroMesh: Unknown field: " + str(key))
             err = 1
     for key in customChecks:
         validNums = [i for i in range(1, customChecks['num_refines'] + 1)]
@@ -274,20 +281,21 @@ def verifyYAML(params):
             validSubkeys = ['type', 'x_range', 'y_range', 'radius', 'length_scale', 'z_range']
             for subkey in customChecks[key]:
                 if subkey not in validSubkeys:
-                    print("Unknown refine_custom[" + str(key) + "] field: " + str(subkey))
+                    print("AeroMesh: Unknown  refine_custom[" + str(key) + "] field: " + str(subkey))
                     err = 1
         else:
-            print("Unknown refine_custom field: " + str(key))
+            print("AeroMesh: Unknown  refine_custom field: " + str(key))
             err = 1
     farmChecks = params['refine']['farm']
     for key in farmChecks:
         valid = ['length_scale', 'threshold_distance', 'type']
         if key not in valid:
-            print("Unknown field: " + key)
+            print("AeroMesh: Unknown field: " + key)
             err = 1
     if err == 0:
-        print("YAML validated successfully.")
-        print("***----------------------------------------***")
+        if not suppress:
+            print("YAML validated successfully.")
+            print("***----------------------------------------***")
     else:
         print("***----------------------------------------***")
         raise Exception("YAML Error: Unexpected fields specified.")
