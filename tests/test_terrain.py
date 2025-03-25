@@ -1,6 +1,6 @@
 import gmsh
-from src.terrain import buildTerrain2D, buildTerrainDefault, buildTerrainFromFile
-from src.structures import Domain
+from aeromesh.terrain.terrain import buildTerrain2D, buildTerrainDefault, buildTerrainFromFile
+from aeromesh.structs.structures import Domain
 from filecmp import cmp
 
 def test_terrain3D():

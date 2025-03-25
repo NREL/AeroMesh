@@ -1,17 +1,17 @@
 import gmsh
 import sys, os
 import yaml
-from src.structures import Domain, WindFarm
-from src.terrain import buildTerrainFromFile, buildTerrainDefault, buildTerrain2D, buildTerrainCylinder, buildTerrainCircle
-from src.functions2D import *
-from src.functions3D import *
-from src.refines import generateCustomRefines
+from structs.structures import Domain, WindFarm
+from terrain.terrain import buildTerrainFromFile, buildTerrainDefault, buildTerrain2D, buildTerrainCylinder, buildTerrainCircle
+from geometry.functions2D import *
+from geometry.functions3D import *
+from geometry.refines import generateCustomRefines
 import meshio
 import numpy as np
 import math
 import tempfile
 
-def toXDMF(ndim):
+def toXDMF(ndim, name):
     tempdir = tempfile.TemporaryDirectory()
     gmsh.write(os.path.join(tempdir.name, "dummy.msh"))
 
@@ -27,14 +27,14 @@ def toXDMF(ndim):
     if ndim == 3:
         tetras = create_mesh(msh, 'tetra')
         tris = create_mesh(msh, 'triangle')
-        meshio.write('out.xdmf', tetras)
-        meshio.write('out_boundary.xdmf', tris)
+        meshio.write(name + '.xdmf', tetras)
+        meshio.write(name + '_boundary.xdmf', tris)
 
     else:
         tris = create_mesh(msh, 'triangle', prune_dim=True)
         lines = create_mesh(msh, 'line', prune_dim=True)
-        meshio.write('out.xdmf', tris)
-        meshio.write('out_boundary.xdmf', lines)
+        meshio.write(name + '.xdmf', tris)
+        meshio.write(name + '_boundary.xdmf', lines)
 
     tempdir.cleanup()
 
@@ -170,13 +170,15 @@ def main():
     else:
         generate2DMesh(params)
     gmsh.model.mesh.optimize()
+
+    filename = params['filename']
     
     if params['filetype'] != 'xdmf':
-        filename = 'out.' + params['filetype']
+        filename = filename + params['filetype']
         gmsh.write(filename)
     else:
         ndim = params['domain']['dimension']
-        toXDMF(ndim)
+        toXDMF(ndim, filename)
 
     if '-v' in sys.argv:
         gmsh.fltk.run()
@@ -203,13 +205,15 @@ def runAeroMesh(params):
     else:
         generate2DMesh(params)
     gmsh.model.mesh.optimize()
+
+    filename = params['filename']
     
     if params['filetype'] != 'xdmf':
-        filename = 'out.' + params['filetype']
+        filename = filename + params['filetype']
         gmsh.write(filename)
     else:
         ndim = params['domain']['dimension']
-        toXDMF(ndim)
+        toXDMF(ndim, filename)
 
     gmsh.finalize()
 
@@ -218,6 +222,7 @@ def setYAMLDefaults(params):
     domain = params['domain']
 
     params.setdefault('filetype', 'msh')
+    params.setdefault('filename', 'out')
     params.setdefault('suppress_out', 1)
     params.setdefault('refine_custom', {}).setdefault('num_refines', 0)
 
@@ -242,7 +247,7 @@ def verifyYAML(params):
         print("***----------------------------------------***")
         print("Validating YAML file.")
     for key in params:
-        if key not in ['refine', 'domain', 'filetype', 'refine_custom', 'suppress_out']:
+        if key not in ['refine', 'domain', 'filetype', 'filename', 'refine_custom', 'suppress_out']:
             print("AeroMesh: Unknown field: " + key)
             err = 1
     domainChecks = params['domain']

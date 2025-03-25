@@ -1,7 +1,7 @@
 import pytest
-from src.structures import WindFarm, Domain
-from src.functions2D import *
-from src.terrain import buildTerrain2D
+from aeromesh.structs.structures import WindFarm, Domain
+from aeromesh.geometry.functions2D import *
+from aeromesh.terrain.terrain import buildTerrain2D
 
 @pytest.fixture
 def domain():
