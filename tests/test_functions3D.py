@@ -1,8 +1,8 @@
 import gmsh
-from src.functions3D import *
-from src.structures import WindFarm, Domain
+from aeromesh.geometry.functions3D import *
+from aeromesh.structs.structures import WindFarm, Domain
 import pytest
-from src.terrain import buildTerrainDefault
+from aeromesh.terrain.terrain import buildTerrainDefault
 
 ###
 # Fixtures
@@ -44,10 +44,10 @@ def test_turbinegen_isolated(domain, params):
 
     wf = WindFarm()
 
-    isotropic_test = placeTurbine(500, 500, 100, 240, 300, 
+    isotropic_test = placeTurbineWake(500, 500, 100, 240, 300, 
                                   100, 30, 100, 50, 0, 1, wf, domain)
     
-    anisotropic_test = placeTurbine(-700, -700, 100, 240, 300, 
+    anisotropic_test = placeTurbineWake(-700, -700, 100, 240, 300, 
                                   100, 30, 100, 50, 0, 3, wf, domain)
     
     gmsh.model.remove()

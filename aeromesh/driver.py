@@ -1,11 +1,11 @@
 import gmsh
 import sys, os
 import yaml
-from src.structures import Domain, WindFarm
-from src.terrain import buildTerrainFromFile, buildTerrainDefault, buildTerrain2D, buildTerrainCylinder, buildTerrainCircle
-from src.functions2D import *
-from src.functions3D import *
-from src.refines import generateCustomRefines
+from structs.structures import Domain, WindFarm
+from terrain.terrain import buildTerrainFromFile, buildTerrainDefault, buildTerrain2D, buildTerrainCylinder, buildTerrainCircle
+from geometry.functions2D import *
+from geometry.functions3D import *
+from geometry.refines import generateCustomRefines
 import meshio
 import numpy as np
 import math
