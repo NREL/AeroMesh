@@ -1,11 +1,9 @@
 import gmsh
 import sys, os
 import yaml
-from structs.structures import Domain, WindFarm
-from terrain.terrain import buildTerrainFromFile, buildTerrainDefault, buildTerrain2D, buildTerrainCylinder, buildTerrainCircle
-from geometry.functions2D import *
-from geometry.functions3D import *
-from geometry.refines import generateCustomRefines
+import aeromesh.structs as structs
+import aeromesh.terrain as tr
+import aeromesh.geometry as geometry
 import meshio
 import numpy as np
 import math
@@ -55,13 +53,13 @@ def generate2DMesh(params):
     params['refine']['background_length_scale'] *= scale
     farmType = params['domain']['type']
 
-    domain = Domain()
+    domain = structs.Domain()
 
-    wf = WindFarm()
+    wf = structs.WindFarm()
     if farmType == 'box':
-        farmBorder = buildTerrain2D(params, domain)
+        farmBorder = tr.buildTerrain2D(params, domain)
     elif farmType == 'cylinder':
-        farmBorder = buildTerrainCircle(params, domain)
+        farmBorder = tr.buildTerrainCircle(params, domain)
     else:
         raise Exception("Invalid farm type specified. Farm types must be in [box, cylinder].")
     
@@ -69,11 +67,11 @@ def generate2DMesh(params):
     sp1 = gmsh.model.geo.addPhysicalGroup(2, [farm], tag=0)
 
     fields = [999]
-    fields.extend(buildFarms2D(params, wf, domain))
-    fields.extend(generateCustomRefines(params))
+    fields.extend(geometry.buildFarms2D(params, wf, domain))
+    fields.extend(geometry.generateCustomRefines(params))
     if params['refine']['farm']['type'] != 'none':
         fields.append(998)
-        refineFarm2D(params, wf)
+        geometry.refineFarm2D(params, wf)
 
     mesher = gmsh.model.mesh.field.add("Min")
     gmsh.model.mesh.field.setNumbers(mesher, "FieldsList", fields)
@@ -104,16 +102,16 @@ def generate3DMesh(params):
     params['refine']['farm']['length_scale'] *= scale
     params['refine']['background_length_scale'] *= scale
 
-    domain = Domain()
+    domain = structs.Domain()
     terrain = None
     if farmType == 'box':
         try:
             terrainDefined = params['domain']['terrain_path']
-            terrain = buildTerrainFromFile(params, domain)
+            terrain = tr.buildTerrainFromFile(params, domain)
         except KeyError:
-            terrain = buildTerrainDefault(params, domain)
+            terrain = tr.buildTerrainDefault(params, domain)
     elif farmType == 'cylinder':
-        terrain = buildTerrainCylinder(params, domain)
+        terrain = tr.buildTerrainCylinder(params, domain)
     else:
         raise Exception("Invalid farm type specified. Farm types must be in [box, cylinder].")
 
@@ -121,13 +119,13 @@ def generate3DMesh(params):
         v1 = gmsh.model.geo.addVolume([terrain], tag=1)
         vp1 = gmsh.model.geo.addPhysicalGroup(3, [v1], tag=0)
         
-    wf = WindFarm()
-    fields = generateTurbines(params, domain, wf)
+    wf = structs.WindFarm()
+    fields = geometry.generateTurbines(params, domain, wf)
     fields.append(999) #Background field, reserved number
-    farmRefine = refineFarm3D(params, wf)
+    farmRefine = geometry.refineFarm3D(params, wf)
     if farmRefine:
         fields.append(farmRefine)
-    fields.extend(generateCustomRefines(params))
+    fields.extend(geometry.generateCustomRefines(params))
 
     gmsh.model.geo.synchronize()
     mesher = gmsh.model.mesh.field.add("Min")
@@ -139,10 +137,10 @@ def generate3DMesh(params):
 
     gmsh.model.mesh.generate(3)
 
-    anisotropyScale(params)
+    geometry.anisotropyScale(params)
 
     if farmType == 'cylinder' and domain.interp:
-        cylinderTerrainAdjustment(domain, params)
+        geometry.cylinderTerrainAdjustment(domain, params)
 
 def main():
     gmsh.initialize()

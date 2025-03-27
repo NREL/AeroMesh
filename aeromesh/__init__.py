@@ -1,3 +1,3 @@
-from driver import runAeroMesh
+from aeromesh.driver import runAeroMesh
 
 __all__ = ['runAeroMesh']
