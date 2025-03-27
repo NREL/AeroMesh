@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "AeroMesh"
-version = "0.0.9"
+version = "0.1.0"
 authors = [
   { name="Adrian Gushin", email="Adrian.Gushin@nrel.gov" },
 ]
@@ -21,3 +21,6 @@ license-files = ["LICEN[CS]E*"]
 [project.urls]
 Homepage = "https://github.com/NREL/AeroMesh"
 Issues = "https://github.com/NREL/AeroMesh/issues"
+
+[project.scripts]
+aeromesh = "aeromesh.driver:main"
