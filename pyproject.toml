@@ -7,6 +7,8 @@ name = "AeroMesh"
 version = "0.1.6"
 authors = [
   { name="Adrian Gushin", email="Adrian.Gushin@nrel.gov" },
+  { name="Jeffery Allen", email="Jeffery.Allen@nrel.gov" },
+  { name="Ethan Young", email="Ethan.Young@nrel.gov" }
 ]
 description = "A customizable mesher for wind farm simulations and analysis."
 readme = "README.md"

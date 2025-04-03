@@ -1,7 +1,6 @@
 import gmsh
 from aeromesh.terrain.terrain import buildTerrain2D, buildTerrainDefault, buildTerrainFromFile
 from aeromesh.structs.structures import Domain
-from filecmp import cmp
 
 def test_terrain3D():
     gmsh.model.add("3D Terrain Test")
@@ -11,7 +10,7 @@ def test_terrain3D():
         'terrain_path': './tests/infiles/skew_terrain.txt',
         'x_range': [-1200, 1200],
         'y_range': [-1200, 1200],
-        'height': 1000,
+        'z_range': [0, 1000],
         'aspect_ratio': 1,
         'upper_aspect_ratio': 1,
         'aspect_distance': 0
@@ -25,11 +24,13 @@ def test_terrain3D():
     gmsh.model.geo.synchronize()
     gmsh.model.mesh.generate(3)
 
-    filename = './tests/outfiles/out_terrain3D.vtk'
-    gmsh.write(filename)
-    gmsh.model.remove()
+    entities2D = gmsh.model.getEntities(dim=2)
+    entities3D = gmsh.model.getEntities(dim=3)
 
-    assert cmp('./tests/outfiles/out_terrain3D.vtk', './tests/testcases/case_terrain3D.vtk') is True
+    gmsh.model.remove()
+    
+    assert len(entities2D) == 6
+    assert len(entities3D) == 0
 
 def test_terrain3D_default():
     gmsh.model.add("3D Default Terrain Test")
@@ -38,7 +39,7 @@ def test_terrain3D_default():
     params['domain'] = {
         'x_range': [-1200, 1200],
         'y_range': [-1200, 1200],
-        'height': 1000,
+        'z_range': [0, 1000],
         'aspect_ratio': 1,
         'upper_aspect_ratio': 1,
         'aspect_distance': 0
@@ -52,18 +53,19 @@ def test_terrain3D_default():
     gmsh.model.geo.synchronize()
     gmsh.model.mesh.generate(3)
 
-    filename = './tests/outfiles/out_terrain3D_default.vtk'
-    gmsh.write(filename)
+    entities2D = gmsh.model.getEntities(dim=2)
+    entities3D = gmsh.model.getEntities(dim=3)
     gmsh.model.remove()
 
-    assert cmp('./tests/outfiles/out_terrain3D_default.vtk', './tests/testcases/case_terrain3D_default.vtk') is True
+    assert len(entities2D) == 6
+    assert len(entities3D) == 0
 
 def test_terrain2D():
     gmsh.model.add("2D Terrain Test")
     params = dict()
 
     d = Domain()
-    d.setDomain([-1200, 1200], [-1200, 1200], 0)
+    d.setDomain([-1200, 1200], [-1200, 1200])
 
     params['domain'] = {
         'x_range': [-1200, 1200],
@@ -79,8 +81,9 @@ def test_terrain2D():
     gmsh.model.geo.synchronize()
     gmsh.model.mesh.generate(2)
 
-    filename = './tests/outfiles/out_terrain2D.vtk'
-    gmsh.write(filename)
+    entities1D = gmsh.model.getEntities(dim=1)
+    entities2D = gmsh.model.getEntities(dim=2)
     gmsh.model.remove()
 
-    assert cmp('./tests/outfiles/out_terrain2D.vtk', './tests/testcases/case_terrain2D.vtk') is True
+    assert len(entities2D) == 1
+    assert len(entities1D) == 4

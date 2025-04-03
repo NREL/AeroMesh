@@ -25,8 +25,6 @@ def generateTurbines(params, domain, wf):
     lc = params['refine']['turbine']['length_scale'] 
     lcb = params['refine']['background_length_scale']
     lcf = params['refine']['farm']['length_scale']
-    upstream = params['refine']['turbine']['threshold_upstream_distance']
-    downstream = params['refine']['turbine']['threshold_downstream_distance']
     rotor = params['refine']['turbine']['threshold_rotor_distance']
     aspect = params['domain']['aspect_ratio']
     aspect_upper = params['domain']['upper_aspect_ratio']
@@ -51,6 +49,8 @@ def generateTurbines(params, domain, wf):
             raise Exception("Invalid turbine location.")
         
         if turbineType == 'wake':
+            upstream = params['refine']['turbine']['threshold_upstream_distance']
+            downstream = params['refine']['turbine']['threshold_downstream_distance']
             fields.extend(placeTurbineWake(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, aspect, wf, domain))
         elif turbineType == 'simple':
             ground = domain.calculateGround(x, y)

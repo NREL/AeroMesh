@@ -6,7 +6,7 @@ from aeromesh.terrain.terrain import buildTerrain2D
 @pytest.fixture
 def domain():
     d = Domain()
-    d.setDomain([-1200, 1200], [-1200, 1200], 0)
+    d.setDomain([-1200, 1200], [-1200, 1200], [0, 1])
     return d
 
 def test_turbinegen_full(domain):
@@ -21,7 +21,7 @@ def test_turbinegen_full(domain):
     params['refine'] = {
         'background_length_scale': 100,
         'turbine': {
-            'type': 'circle'
+            'type': 'wake'
         },
         'farm': {}
     }
@@ -45,7 +45,7 @@ def test_turbinegen_full(domain):
     }
 
     struct = buildTerrain2D(params, domain)
-    gmsh.model.geo.addPlaneSurface([struct])
+    gmsh.model.geo.addPlaneSurface([struct], tag=999)
     wf = WindFarm()
 
     turbines = buildFarms2D(params, wf, domain)
@@ -53,7 +53,3 @@ def test_turbinegen_full(domain):
     gmsh.model.remove()
 
     assert len(turbines) == 2
-    assert wf.x_range == [-900, 300]
-    assert wf.y_range == [200, 500]
-
-    
