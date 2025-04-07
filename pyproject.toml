@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "AeroMesh"
-version = "0.0.1"
+version = "0.0.2"
 authors = [
   { name="Adrian Gushin", email="Adrian.Gushin@nrel.gov" },
   { name="Jeffery Allen", email="Jeffery.Allen@nrel.gov" },
@@ -21,7 +21,7 @@ license = "BSD-3-Clause"
 license-files = ["LICEN[CS]E*"]
 dependencies = [
   "gmsh>=4.13.1",
-  "scipy>=1.14.0",
+  "scipy>=1.13.0",
   "numpy>=1.26.4",
   "h5py>=3.11.0",
   "pyyaml>=6.0.1",

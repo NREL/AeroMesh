@@ -1,4 +1,5 @@
 import gmsh
+import math
 
 def generateCustomRefines(params):
     """
@@ -23,13 +24,22 @@ def generateCustomRefines(params):
         shape = params['refine_custom'][i]['type']
         x = params['refine_custom'][i]['x_range']
         y = params['refine_custom'][i]['y_range']
-        z = [0, 1] if dim == 2 else _getAdjustedHeight(lower_aspect, upper_aspect, threshold, params['refine_custom'][i]['z_range'])
         lc = params['refine_custom'][i]['length_scale']
         if shape == 'box':
+            z = [0, 1] if dim == 2 else _getAdjustedHeight(lower_aspect, upper_aspect, threshold, params['refine_custom'][i]['z_range'])
             fields.append(_customBox(x, y, z, lc, blc))
         elif shape == 'cylinder':
+            z = [0, 1] if dim == 2 else _getAdjustedHeight(lower_aspect, upper_aspect, threshold, params['refine_custom'][i]['z_range'])
             radius = params['refine_custom'][i]['radius']
             fields.append(_customCylinder(x, y, radius, z, lc, blc))
+        elif shape == 'stream':
+            z = 0 if dim == 2 else params['refine_custom'][i]['z_range']
+            length = params['refine_custom'][i]['length']
+            radius = params['refine_custom'][i]['radius']
+            inflow = params['domain']['inflow_angle']
+            fields.append(_customStream(x, y, z, radius, length, lc, blc, inflow))
+        else:
+            raise Exception("AeroMesh: Invalid Custom Refinement.")
             
     return fields
 
@@ -123,3 +133,26 @@ def _customCylinder(x, y, radius, height, lc, blc):
     gmsh.model.mesh.field.setNumber(c, "ZCenter", height[0])
 
     return c
+
+def _customStream(x, y, z, radius, length, lc, blc, inflow):
+    numPoints = math.ceil(length / radius)
+    points = []
+    for i in range(numPoints):
+        points.append(gmsh.model.geo.addPoint(x + i * radius, y, z))
+
+    gmsh.model.geo.synchronize()
+    levelTags = list(tag for tag in zip([0] * len(points), points))
+    gmsh.model.geo.rotate(levelTags, x, y, z, 0, 0, 1, inflow)
+    gmsh.model.geo.synchronize()
+
+    f = gmsh.model.mesh.field.add("Distance")
+    gmsh.model.mesh.field.setNumbers(f, "PointsList", points)
+
+    t = gmsh.model.mesh.field.add("Threshold")
+    gmsh.model.mesh.field.setNumber(t, "InField", f)
+    gmsh.model.mesh.field.setNumber(t, "SizeMin", lc)
+    gmsh.model.mesh.field.setNumber(t, "SizeMax", blc)
+    gmsh.model.mesh.field.setNumber(t, "DistMin", radius)
+    gmsh.model.mesh.field.setNumber(t, "DistMax", radius + 0.5 * (lc + blc) * 4)
+
+    return t
