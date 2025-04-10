@@ -36,8 +36,12 @@ def generateCustomRefines(params):
             z = 0 if dim == 2 else params['refine_custom'][i]['z_range']
             length = params['refine_custom'][i]['length']
             radius = params['refine_custom'][i]['radius']
-            inflow = params['domain']['inflow_angle']
-            fields.append(_customStream(x, y, z, radius, length, lc, blc, inflow))
+            theta = params['refine_custom'][i]['theta']
+            fields.append(_customStream(x, y, z, radius, length, lc, blc, theta))
+        elif shape == 'sphere':
+            z = 0 if dim == 2 else params['refine_custom'][i]['z_range']
+            radius = params['refine_custom'][i]['radius']
+            fields.append(_customSphere(x, y, z, radius, lc, blc))
         else:
             raise Exception("AeroMesh: Invalid Custom Refinement.")
             
@@ -134,7 +138,7 @@ def _customCylinder(x, y, radius, height, lc, blc):
 
     return c
 
-def _customStream(x, y, z, radius, length, lc, blc, inflow):
+def _customStream(x, y, z, radius, length, lc, blc, theta):
     numPoints = math.ceil(length / radius)
     points = []
     for i in range(numPoints):
@@ -142,7 +146,7 @@ def _customStream(x, y, z, radius, length, lc, blc, inflow):
 
     gmsh.model.geo.synchronize()
     levelTags = list(tag for tag in zip([0] * len(points), points))
-    gmsh.model.geo.rotate(levelTags, x, y, z, 0, 0, 1, inflow)
+    gmsh.model.geo.rotate(levelTags, x, y, z, 0, 0, 1, theta)
     gmsh.model.geo.synchronize()
 
     f = gmsh.model.mesh.field.add("Distance")
@@ -156,3 +160,16 @@ def _customStream(x, y, z, radius, length, lc, blc, inflow):
     gmsh.model.mesh.field.setNumber(t, "DistMax", radius + 0.5 * (lc + blc) * 4)
 
     return t
+
+def _customSphere(x, y, z, radius, lc, blc):
+
+    s = gmsh.model.mesh.field.add("Ball")
+
+    gmsh.model.mesh.field.setNumber(s, "Radius", radius)
+    gmsh.model.mesh.field.setNumber(s, "XCenter", x)
+    gmsh.model.mesh.field.setNumber(s, "YCenter", y)
+    gmsh.model.mesh.field.setNumber(s, "ZCenter", z)
+    gmsh.model.mesh.field.setNumber(s, "VIn", lc)
+    gmsh.model.mesh.field.setNumber(s, "VOut", blc)
+
+    return s

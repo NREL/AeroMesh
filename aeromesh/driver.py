@@ -281,7 +281,7 @@ def verifyYAML(params):
         if key == 'num_refines':
             continue
         elif key in validNums:
-            validSubkeys = ['type', 'x_range', 'y_range', 'radius', 'length_scale', 'z_range', 'length']
+            validSubkeys = ['type', 'x_range', 'y_range', 'radius', 'length_scale', 'z_range', 'length', 'theta']
             for subkey in customChecks[key]:
                 if subkey not in validSubkeys:
                     print("AeroMesh: Unknown  refine_custom[" + str(key) + "] field: " + str(subkey))

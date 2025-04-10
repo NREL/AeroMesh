@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "AeroMesh"
-version = "0.0.2"
+version = "0.0.3"
 authors = [
   { name="Adrian Gushin", email="Adrian.Gushin@nrel.gov" },
   { name="Jeffery Allen", email="Jeffery.Allen@nrel.gov" },

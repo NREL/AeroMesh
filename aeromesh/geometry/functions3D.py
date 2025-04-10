@@ -55,13 +55,15 @@ def generateTurbines(params, domain, wf):
         elif turbineType == 'simple':
             ground = domain.calculateGround(x, y)
             fields.extend(placeTurbineSimple(x, y, rotor, hh, lc, lcb, ground, aspect, aspect_upper, aspect_distance, wf))
+        elif turbineType == 'sphere':
+            fields.extend(placeTurbineSphere(x, y, z, rotor, lc, lcb, wf))
         else:
-            raise Exception("Invalid turbine type. Must be simple or wake.")
+            raise Exception("Invalid turbine type. Must be simple, wake, or sphere.")
 
     return fields
 
 def placeTurbineSimple(x, y, rotor, hh, lc, lcb, ground, aspect, upperAspect, aspectDist, wf):
-    radius = rotor
+    radius = rotor / 2
     top = ground + hh + (rotor / 2)
     bottom = ground
     bottomDist = aspectDist - bottom
@@ -83,6 +85,25 @@ def placeTurbineSimple(x, y, rotor, hh, lc, lcb, ground, aspect, upperAspect, as
 
     fields = [c]
     return fields
+
+def placeTurbineSphere(x, y, hh, rotor, lc, lcb, wf):
+    wf.updateXMax(x)
+    wf.updateXMin(x)
+    wf.updateYMax(y)
+    wf.updateYMin(y)
+    wf.updateZMax(hh)
+
+    s = gmsh.model.mesh.field.add("Ball")
+    radius = rotor / 2
+
+    gmsh.model.mesh.field.setNumber(s, "Radius", radius)
+    gmsh.model.mesh.field.setNumber(s, "XCenter", x)
+    gmsh.model.mesh.field.setNumber(s, "YCenter", y)
+    gmsh.model.mesh.field.setNumber(s, "ZCenter", hh)
+    gmsh.model.mesh.field.setNumber(s, "VIn", lc)
+    gmsh.model.mesh.field.setNumber(s, "VOut", lcb)
+
+    return s
         
 def placeTurbineWake(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, aspect, wf, domain):
 
