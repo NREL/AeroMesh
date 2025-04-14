@@ -63,8 +63,8 @@ def generateTurbines(params, domain, wf):
     return fields
 
 def placeTurbineSimple(x, y, rotor, hh, lc, lcb, ground, aspect, upperAspect, aspectDist, wf):
-    radius = rotor / 2
-    top = ground + hh + (rotor / 2)
+    radius = rotor
+    top = ground + hh + rotor
     bottom = ground
     bottomDist = aspectDist - bottom
     topDist = top - aspectDist
@@ -94,7 +94,7 @@ def placeTurbineSphere(x, y, hh, rotor, lc, lcb, wf):
     wf.updateZMax(hh)
 
     s = gmsh.model.mesh.field.add("Ball")
-    radius = rotor / 2
+    radius = rotor
 
     gmsh.model.mesh.field.setNumber(s, "Radius", radius)
     gmsh.model.mesh.field.setNumber(s, "XCenter", x)
@@ -103,7 +103,7 @@ def placeTurbineSphere(x, y, hh, rotor, lc, lcb, wf):
     gmsh.model.mesh.field.setNumber(s, "VIn", lc)
     gmsh.model.mesh.field.setNumber(s, "VOut", lcb)
 
-    return s
+    return [s]
         
 def placeTurbineWake(x, y, z, upstream, downstream, rotor, lc, lcb, lcf, inflow, aspect, wf, domain):
 
