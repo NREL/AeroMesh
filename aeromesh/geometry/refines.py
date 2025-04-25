@@ -18,6 +18,7 @@ def generateCustomRefines(params):
     lower_aspect = params['domain']['aspect_ratio']
     threshold = params['domain']['aspect_distance']
     upper_aspect = params['domain']['upper_aspect_ratio']
+    rotor = params['refine']['turbine']['threshold_rotor_distance']
 
     fields = []
     for i in range(1, n_refines + 1):
@@ -34,10 +35,11 @@ def generateCustomRefines(params):
             fields.append(_customCylinder(x, y, radius, z, lc, blc))
         elif shape == 'stream':
             z = 0 if dim == 2 else params['refine_custom'][i]['z_range']
+            levels = _getAdjustedStream(lower_aspect, upper_aspect, threshold, z, rotor)
             length = params['refine_custom'][i]['length']
             radius = params['refine_custom'][i]['radius']
             theta = params['refine_custom'][i]['theta']
-            fields.append(_customStream(x, y, z, radius, length, lc, blc, theta))
+            fields.append(_customStream(x, y, z, radius, length, lc, blc, theta, levels))
         elif shape == 'sphere':
             z = 0 if dim == 2 else params['refine_custom'][i]['z_range']
             radius = params['refine_custom'][i]['radius']
@@ -46,6 +48,25 @@ def generateCustomRefines(params):
             raise Exception("AeroMesh: Invalid Custom Refinement.")
             
     return fields
+
+def _getAdjustedStream(lower_aspect, upper_aspect, threshold, z, rotor):
+    bottom, top = z, z
+    bottomDist = threshold - bottom
+    topDist = top - threshold
+
+    if bottom > threshold:
+        bottomDist = 0
+    
+    if top <= threshold:
+        topDist = 0
+
+    zAdjusted = top + (bottomDist * (lower_aspect - 1)) - (topDist * (1 - upper_aspect))
+    delta = zAdjusted - z
+    if delta < 0:
+        raise Exception("[AeroMesh]: Improper aspect ratios caused stream refinement compression.")
+    
+    rad = rotor / 2
+    return math.ceil(delta / rad)
 
 def _getAdjustedHeight(lower_aspect, upper_aspect, threshold, z_range):
     """
@@ -138,11 +159,12 @@ def _customCylinder(x, y, radius, height, lc, blc):
 
     return c
 
-def _customStream(x, y, z, radius, length, lc, blc, theta):
+def _customStream(x, y, z, radius, length, lc, blc, theta, levels):
     numPoints = math.ceil(length / radius)
     points = []
-    for i in range(numPoints):
-        points.append(gmsh.model.geo.addPoint(x + i * radius, y, z))
+    for level in range(levels):
+        for i in range(numPoints):
+            points.append(gmsh.model.geo.addPoint(x + i * radius, y, z + (level * radius)))
 
     gmsh.model.geo.synchronize()
     levelTags = list(tag for tag in zip([0] * len(points), points))
